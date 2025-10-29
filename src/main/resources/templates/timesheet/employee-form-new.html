@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Timesheet - HRMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-light: #6366f1;
+            --primary-dark: #3730a3;
+            --secondary-color: #64748b;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --danger-color: #dc2626;
+            --content-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            margin: 0;
+            padding: 20px;
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .main-card {
+            background: var(--content-bg);
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 24px 30px;
+            border: none;
+        }
+
+        .card-header h1 {
+            margin: 0;
+            font-size: 1.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        .form-section {
+            margin-bottom: 32px;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .form-control {
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.15);
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .timesheet-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .timesheet-table th {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            color: var(--text-primary);
+            font-weight: 600;
+            padding: 16px 12px;
+            text-align: center;
+            border-bottom: 2px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        .timesheet-table td {
+            padding: 12px;
+            text-align: center;
+            vertical-align: middle;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .day-cell {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            font-weight: 600;
+            color: var(--text-primary);
+            min-width: 100px;
+        }
+
+        .weekend-cell {
+            background: linear-gradient(135deg, #fef7f0 0%, #fef3e2 100%);
+        }
+
+        .time-input {
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            padding: 8px 12px;
+            width: 80px;
+            text-align: center;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .time-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.15rem rgba(79, 70, 229, 0.15);
+            outline: none;
+        }
+
+        .time-input.weekend-hours {
+            border-color: var(--warning-color);
+        }
+
+        .time-input.weekend-hours:focus {
+            border-color: var(--warning-color);
+            box-shadow: 0 0 0 0.15rem rgba(217, 119, 6, 0.15);
+        }
+
+        .hours-display {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            min-width: 60px;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .summary-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: block;
+        }
+
+        .summary-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn {
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 100%);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-outline-secondary {
+            border: 2px solid var(--secondary-color);
+            color: var(--secondary-color);
+            background: transparent;
+        }
+
+        .btn-outline-secondary:hover {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .alert {
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+            border: none;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            color: var(--success-color);
+            border-left: 4px solid var(--success-color);
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            color: var(--danger-color);
+            border-left: 4px solid var(--danger-color);
+        }
+
+        @media (max-width: 768px) {
+            .timesheet-table {
+                font-size: 0.8rem;
+            }
+            
+            .time-input {
+                width: 60px;
+                padding: 6px 8px;
+            }
+            
+            .summary-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Success/Error Messages -->
+        <div th:if="${success}" class="alert alert-success">
+            <i class="bi bi-check-circle me-2"></i><span th:text="${success}"></span>
+        </div>
+        <div th:if="${error}" class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle me-2"></i><span th:text="${error}"></span>
+        </div>
+
+        <div class="main-card">
+            <div class="card-header">
+                <h1><i class="bi bi-clock-history"></i> Weekly Timesheet Submission</h1>
+            </div>
+            
+            <div class="card-body">
+                <form th:action="@{/timesheet/submit-weekly}" method="post" id="timesheetForm">
+                    
+                    <!-- Week Selection Section -->
+                    <div class="form-section">
+                        <h3 class="section-title">Week Selection</h3>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label for="weekStartDate" class="form-label">
+                                    <i class="bi bi-calendar3"></i> Week Starting Date
+                                </label>
+                                <input type="date" class="form-control" id="weekStartDate" name="weekStartDate" 
+                                       th:value="${#temporals.format(weekStart, 'yyyy-MM-dd')}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="weekEndDate" class="form-label">
+                                    <i class="bi bi-calendar-check"></i> Week Ending Date
+                                </label>
+                                <input type="text" class="form-control" id="weekEndDate" name="weekEndDate" 
+                                       th:value="${#temporals.format(weekEnd, 'MM/dd/yyyy')}" readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="projectId" class="form-label">
+                                    <i class="bi bi-briefcase"></i> Project
+                                </label>
+                                <select class="form-control" id="projectId" name="projectId" required>
+                                    <option value="">Select Project</option>
+                                    <option th:each="project : ${projects}" 
+                                            th:value="${project.id}" 
+                                            th:text="${project.projectName}"
+                                            th:selected="${timesheet?.project?.id == project.id}">
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Summary Cards -->
+                    <div class="summary-cards">
+                        <div class="summary-card">
+                            <span id="totalHours" class="summary-value">0.0</span>
+                            <div class="summary-label">Total Hours</div>
+                        </div>
+                        <div class="summary-card">
+                            <span id="regularHours" class="summary-value">0.0</span>
+                            <div class="summary-label">Regular Hours</div>
+                        </div>
+                        <div class="summary-card">
+                            <span id="overtimeHours" class="summary-value">0.0</span>
+                            <div class="summary-label">Overtime Hours</div>
+                        </div>
+                    </div>
+
+                    <!-- Daily Time Entries -->
+                    <div class="form-section">
+                        <h3 class="section-title">Daily Time Entries</h3>
+                        <div class="table-responsive">
+                            <table class="table timesheet-table">
+                                <thead>
+                                    <tr>
+                                        <th>Day</th>
+                                        <th>Date</th>
+                                        <th>Regular Hours</th>
+                                        <th>Overtime Hours</th>
+                                        <th>Total Hours</th>
+                                        <th>Work Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Sunday -->
+                                    <tr>
+                                        <td class="day-cell weekend-cell">
+                                            <strong>Sunday</strong><br>
+                                            <small class="text-muted" th:text="${#temporals.format(sundayDate, 'MMM dd')}">Oct 19</small>
+                                        </td>
+                                        <td class="weekend-cell">
+                                            <span th:text="${#temporals.format(sundayDate, 'MM/dd/yyyy')}">10/19/2025</span>
+                                        </td>
+                                        <td class="weekend-cell">
+                                            <input type="number" class="time-input weekend-hours" name="sundayRegular" min="0" max="24" step="0.25" 
+                                                   th:value="${entriesByDay['sunday'] != null ? entriesByDay['sunday'].hoursWorked : 0}" 
+                                                   data-day="sunday" placeholder="0.0">
+                                        </td>
+                                        <td class="weekend-cell">
+                                            <input type="number" class="time-input overtime-hours" name="sundayOvertime" min="0" max="24" step="0.25" 
+                                                   th:value="${entriesByDay['sunday'] != null ? entriesByDay['sunday'].overtimeHours : 0}" 
+                                                   data-day="sunday" placeholder="0.0">
+                                        </td>
+                                        <td class="weekend-cell">
+                                            <div class="hours-display" id="sunday-total">0.0</div>
+                                        </td>
+                                        <td class="weekend-cell">
+                                            <input type="text" class="form-control" name="sundayDescription" 
+                                                   th:value="${entriesByDay['sunday'] != null ? entriesByDay['sunday'].taskDescription : ''}" 
+                                                   placeholder="Weekend work description...">
+                                        </td>
+                                    </tr>
+
+                                    <!-- Monday -->
+                                    <tr>
+                                        <td class="day-cell">
+                                            <strong>Monday</strong><br>
+                                            <small class="text-muted" th:text="${#temporals.format(mondayDate, 'MMM dd')}">Oct 20</small>
+                                        </td>
+                                        <td>
+                                            <span th:text="${#temporals.format(mondayDate, 'MM/dd/yyyy')}">10/20/2025</span>
+                                        </td>
+                                        <td>
+                                            <input type="number" class="time-input regular-hours" name="mondayRegular" min="0" max="24" step="0.25" 
+                                                   th:value="${entriesByDay['monday'] != null ? entriesByDay['monday'].hoursWorked : 0}" 
+                                                   data-day="monday" placeholder="0.0">
+                                        </td>
+                                        <td>
+                                            <input type="number" class="time-input overtime-hours" name="mondayOvertime" min="0" max="24" step="0.25" 
+                                                   th:value="${entriesByDay['monday'] != null ? entriesByDay['monday'].overtimeHours : 0}" 
+                                                   data-day="monday" placeholder="0.0">
+                                        </td>
+                                        <td>
+                                            <div class="hours-display" id="monday-total">0.0</div>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control" name="mondayDescription" 
+                                                   th:value="${entriesByDay['monday'] != null ? entriesByDay['monday'].taskDescription : ''}" 
+                                                   placeholder="Describe work performed...">
+                                        </td>
+                                    </tr>
+
+                                    <!-- Tuesday -->
+                                    <tr>
+                                        <td class="day-cell">
+                                            <strong>Tuesday</strong><br>
+                                            <small class="text-muted" th:text="${#temporals.format(tuesdayDate, 'MMM dd')}">Oct 21</small>
+                                        </td>
+                                        <td>
+                                            <span th:text="${#temporals.format(tuesdayDate, 'MM/dd/yyyy')}">10/21/2025</span>
+                                        </td>
+                                        <td>
+                                            <input type="number" class="time-input regular-hours" name="tuesdayRegular" min="0" max="24" step="0.25" 
+                                                   th:value="${entriesByDay['tuesday'] != null ? entriesByDay['tuesday'].hoursWorked : 0}" 
+                                                   data-day="tuesday" placeholder="0.0">
+                                        </td>
+                                        <td>
+                                            <input type="number" class="time-input overtime-hours" name="tuesdayOvertime" min="0" max="24" step="0.25" 
+                                                   th:value="${entriesByDay['tuesday'] != null ? entriesByDay['tuesday'].overtimeHours : 0}" 
+                                                   data-day="tuesday" placeholder="0.0">
+                                        </td>
+                                        <td>
+                                            <div class="hours-display" id="tuesday-total">0.0</div>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control" name="tuesdayDescription" 
+                                                   th:value="${entriesByDay['tuesday'] != null ? entriesByDay['tuesday'].taskDescription : ''}" 
+                                                   placeholder="Describe work performed...">
+                                        </td>
+                                    </tr>
+
+                                    <!-- Wednesday -->
+                                    <tr>
+                                        <td class="day-cell">
+                                            <strong>Wednesday</strong><br>
+                                            <small class="text-muted" th:text="${#temporals.format(wednesdayDate, 'MMM dd')}">Oct 22</small>
+                                        </td>
+                                        <td>
+                                            <span th:text="${#temporals.format(wednesdayDate, 'MM/dd/yyyy')}">10/22/2025</span>
+                                        </td>
+                                        <td>
+                                            <input type="number" class="time-input regular-hours" name="wednesdayRegular" min="0" max="24" step="0.25" 
+                                                   th:value="${entriesByDay['wednesday'] != null ? entriesByDay['wednesday'].hoursWorked : 0}" 
+                                                   data-day="wednesday" placeholder="0.0">
+                                        </td>
+                                        <td>
+                                            <input type="number" class="time-input overtime-hours" name="wednesdayOvertime" min="0" max="24" step="0.25" 
+                                                   th:value="${entriesByDay['wednesday'] != null ? entriesByDay['wednesday'].overtimeHours : 0}" 
+                                                   data-day="wednesday" placeholder="0.0">
+                                        </td>
+                                        <td>
+                                            <div class="hours-display" id="wednesday-total">0.0</div>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control" name="wednesdayDescription" 
+                                                   th:value="${entriesByDay['wednesday'] != null ? entriesByDay['wednesday'].taskDescription : ''}" 
+                                                   placeholder="Describe work performed...">
+                                        </td>
+                                    </tr>
+
+                                    <!-- Thursday -->
+                                    <tr>
+                                        <td class="day-cell">
+                                            <strong>Thursday</strong><br>
+                                            <small class="text-muted" th:text="${#temporals.format(thursdayDate, 'MMM dd')}">Oct 23</small>
+                                        </td>
+                                        <td>
+                                            <span th:text="${#temporals.format(thursdayDate, 'MM/dd/yyyy')}">10/23/2025</span>
+                                        </td>
+                                        <td>
+                                            <input type="number" class="time-input regular-hours" name="thursdayRegular" min="0" max="24" step="0.25" 
+                                                   th:value="${entriesByDay['thursday'] != null ? entriesByDay['thursday'].hoursWorked : 0}" 
+                                                   data-day="thursday" placeholder="0.0">
+                                        </td>
+                                        <td>
+                                            <input type="number" class="time-input overtime-hours" name="thursdayOvertime" min="0" max="24" step="0.25" 
+                                                   th:value="${entriesByDay['thursday'] != null ? entriesByDay['thursday'].overtimeHours : 0}" 
+                                                   data-day="thursday" placeholder="0.0">
+                                        </td>
+                                        <td>
+                                            <div class="hours-display" id="thursday-total">0.0</div>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control" name="thursdayDescription" 
+                                                   th:value="${entriesByDay['thursday'] != null ? entriesByDay['thursday'].taskDescription : ''}" 
+                                                   placeholder="Describe work performed...">
+                                        </td>
+                                    </tr>
+
+                                    <!-- Friday -->
+                                    <tr>
+                                        <td class="day-cell">
+                                            <strong>Friday</strong><br>
+                                            <small class="text-muted" th:text="${#temporals.format(fridayDate, 'MMM dd')}">Oct 24</small>
+                                        </td>
+                                        <td>
+                                            <span th:text="${#temporals.format(fridayDate, 'MM/dd/yyyy')}">10/24/2025</span>
+                                        </td>
+                                        <td>
+                                            <input type="number" class="time-input regular-hours" name="fridayRegular" min="0" max="24" step="0.25" 
+                                                   th:value="${entriesByDay['friday'] != null ? entriesByDay['friday'].hoursWorked : 0}" 
+                                                   data-day="friday" placeholder="0.0">
+                                        </td>
+                                        <td>
+                                            <input type="number" class="time-input overtime-hours" name="fridayOvertime" min="0" max="24" step="0.25" 
+                                                   th:value="${entriesByDay['friday'] != null ? entriesByDay['friday'].overtimeHours : 0}" 
+                                                   data-day="friday" placeholder="0.0">
+                                        </td>
+                                        <td>
+                                            <div class="hours-display" id="friday-total">0.0</div>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control" name="fridayDescription" 
+                                                   th:value="${entriesByDay['friday'] != null ? entriesByDay['friday'].taskDescription : ''}" 
+                                                   placeholder="Describe work performed...">
+                                        </td>
+                                    </tr>
+
+                                    <!-- Saturday -->
+                                    <tr>
+                                        <td class="day-cell weekend-cell">
+                                            <strong>Saturday</strong><br>
+                                            <small class="text-muted" th:text="${#temporals.format(saturdayDate, 'MMM dd')}">Oct 25</small>
+                                        </td>
+                                        <td class="weekend-cell">
+                                            <span th:text="${#temporals.format(saturdayDate, 'MM/dd/yyyy')}">10/25/2025</span>
+                                        </td>
+                                        <td class="weekend-cell">
+                                            <input type="number" class="time-input weekend-hours" name="saturdayRegular" min="0" max="24" step="0.25" 
+                                                   th:value="${entriesByDay['saturday'] != null ? entriesByDay['saturday'].hoursWorked : 0}" 
+                                                   data-day="saturday" placeholder="0.0">
+                                        </td>
+                                        <td class="weekend-cell">
+                                            <input type="number" class="time-input overtime-hours" name="saturdayOvertime" min="0" max="24" step="0.25" 
+                                                   th:value="${entriesByDay['saturday'] != null ? entriesByDay['saturday'].overtimeHours : 0}" 
+                                                   data-day="saturday" placeholder="0.0">
+                                        </td>
+                                        <td class="weekend-cell">
+                                            <div class="hours-display" id="saturday-total">0.0</div>
+                                        </td>
+                                        <td class="weekend-cell">
+                                            <input type="text" class="form-control" name="saturdayDescription" 
+                                                   th:value="${entriesByDay['saturday'] != null ? entriesByDay['saturday'].taskDescription : ''}" 
+                                                   placeholder="Weekend work description...">
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="text-center">
+                        <button type="submit" name="action" value="save" class="btn btn-outline-secondary me-3">
+                            <i class="bi bi-save"></i> Save as Draft
+                        </button>
+                        <button type="submit" name="action" value="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Submit for Approval
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Timesheet form initialized');
+
+            // Get form elements
+            const weekStartInput = document.getElementById('weekStartDate');
+            const weekEndInput = document.getElementById('weekEndDate');
+            const timeInputs = document.querySelectorAll('.time-input');
+
+            // Robust date calculation function
+            function calculateWeekDates(selectedDateString) {
+                console.log('📅 Calculating week dates for:', selectedDateString);
+                
+                // Parse date with noon time to avoid timezone issues
+                const inputDate = new Date(selectedDateString + 'T12:00:00');
+                console.log('Parsed date:', inputDate.toDateString(), 'Day of week:', inputDate.getDay());
+                
+                // Find Sunday of this week
+                const daysFromSunday = inputDate.getDay(); // 0=Sunday, 1=Monday, etc.
+                const sunday = new Date(inputDate);
+                sunday.setUTCDate(inputDate.getUTCDate() - daysFromSunday);
+                
+                // Calculate Saturday
+                const saturday = new Date(sunday);
+                saturday.setUTCDate(sunday.getUTCDate() + 6);
+                
+                console.log('📍 Week calculated:', sunday.toDateString(), 'to', saturday.toDateString());
+                
+                return {
+                    sunday: sunday,
+                    saturday: saturday,
+                    sundayFormatted: sunday.getFullYear() + '-' + 
+                        String(sunday.getMonth() + 1).padStart(2, '0') + '-' + 
+                        String(sunday.getDate()).padStart(2, '0'),
+                    saturdayFormatted: String(saturday.getMonth() + 1).padStart(2, '0') + '/' +
+                        String(saturday.getDate()).padStart(2, '0') + '/' +
+                        saturday.getFullYear()
+                };
+            }
+
+            // Update week dates display
+            function updateWeekDisplay() {
+                if (!weekStartInput.value) return;
+                
+                const weekData = calculateWeekDates(weekStartInput.value);
+                
+                // Update end date display
+                weekEndInput.value = weekData.saturdayFormatted;
+                
+                // Update start date to Sunday if needed
+                if (weekStartInput.value !== weekData.sundayFormatted) {
+                    console.log('🔄 Updating start date from', weekStartInput.value, 'to', weekData.sundayFormatted);
+                    weekStartInput.removeEventListener('change', handleDateChange);
+                    weekStartInput.value = weekData.sundayFormatted;
+                    weekStartInput.addEventListener('change', handleDateChange);
+                }
+            }
+
+            // Handle date changes with debouncing
+            let dateChangeTimeout;
+            function handleDateChange() {
+                clearTimeout(dateChangeTimeout);
+                dateChangeTimeout = setTimeout(() => {
+                    if (!weekStartInput.value) return;
+                    
+                    const weekData = calculateWeekDates(weekStartInput.value);
+                    
+                    // Check if we need to redirect to a different week
+                    const currentUrl = new URL(window.location);
+                    const currentWeekStart = currentUrl.searchParams.get('weekStart');
+                    
+                    console.log('🔍 Current week:', currentWeekStart, 'Calculated week:', weekData.sundayFormatted);
+                    
+                    if (currentWeekStart !== weekData.sundayFormatted) {
+                        const newUrl = `/timesheet/submit?weekStart=${weekData.sundayFormatted}`;
+                        console.log('🔄 Redirecting to:', newUrl);
+                        window.location.href = newUrl;
+                    } else {
+                        console.log('✅ Same week - updating display');
+                        updateWeekDisplay();
+                    }
+                }, 500);
+            }
+
+            // Calculate and update totals
+            function updateTotals() {
+                let totalRegular = 0;
+                let totalOvertime = 0;
+                
+                // Calculate totals for each day
+                const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+                
+                days.forEach(day => {
+                    const regularInput = document.querySelector(`input[name="${day}Regular"]`);
+                    const overtimeInput = document.querySelector(`input[name="${day}Overtime"]`);
+                    const totalDisplay = document.getElementById(`${day}-total`);
+                    
+                    const regular = parseFloat(regularInput?.value || 0);
+                    const overtime = parseFloat(overtimeInput?.value || 0);
+                    const dayTotal = regular + overtime;
+                    
+                    totalRegular += regular;
+                    totalOvertime += overtime;
+                    
+                    if (totalDisplay) {
+                        totalDisplay.textContent = dayTotal.toFixed(1);
+                    }
+                });
+                
+                const grandTotal = totalRegular + totalOvertime;
+                
+                // Update summary cards
+                document.getElementById('totalHours').textContent = grandTotal.toFixed(1);
+                document.getElementById('regularHours').textContent = totalRegular.toFixed(1);
+                document.getElementById('overtimeHours').textContent = totalOvertime.toFixed(1);
+                
+                console.log('📊 Totals updated - Regular:', totalRegular, 'Overtime:', totalOvertime, 'Total:', grandTotal);
+            }
+
+            // Event listeners
+            weekStartInput.addEventListener('change', handleDateChange);
+            
+            timeInputs.forEach(input => {
+                input.addEventListener('input', updateTotals);
+                input.addEventListener('change', updateTotals);
+            });
+
+            // Form submission validation
+            document.getElementById('timesheetForm').addEventListener('submit', function(e) {
+                const projectId = document.getElementById('projectId').value;
+                if (!projectId) {
+                    e.preventDefault();
+                    alert('Please select a project before submitting.');
+                    return;
+                }
+                
+                const totalHours = parseFloat(document.getElementById('totalHours').textContent);
+                if (totalHours === 0) {
+                    e.preventDefault();
+                    alert('Please enter at least some hours worked before submitting.');
+                    return;
+                }
+                
+                console.log('✅ Form validation passed - submitting timesheet');
+            });
+
+            // Initialize
+            updateWeekDisplay();
+            updateTotals();
+            
+            console.log('✅ Timesheet form ready');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Project - HRMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root { --sidebar-width: 250px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fa; }
+        .sidebar { position: fixed; top: 0; left: 0; height: 100vh; width: var(--sidebar-width); background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding-top: 20px; z-index: 1000; }
+        .sidebar .brand { padding: 15px 25px; color: white; font-size: 24px; font-weight: bold; text-decoration: none; display: block; }
+        .sidebar .nav-link { color: rgba(255, 255, 255, 0.8); padding: 12px 25px; margin: 5px 0; transition: all 0.3s; }
+        .sidebar .nav-link:hover { background: rgba(255, 255, 255, 0.1); color: white; }
+        .main-content { margin-left: var(--sidebar-width); padding: 20px; min-height: 100vh; }
+        .navbar-custom { background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 30px; padding: 15px 20px; border-radius: 10px; }
+        .card { border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1); background: white; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <a href="/dashboard" class="brand"><i class="bi bi-buildings"></i> HRMS</a>
+        <nav class="nav flex-column mt-4">
+            <a class="nav-link" href="/dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a class="nav-link" href="/employee/list"><i class="bi bi-people"></i> Employees</a>
+            <a class="nav-link" href="/project/list"><i class="bi bi-briefcase"></i> Projects</a>
+            <a class="nav-link" href="/documents"><i class="bi bi-file-earmark-text"></i> Documents</a>
+            <a class="nav-link" href="/offboarding/list"><i class="bi bi-box-arrow-right"></i> Offboarding</a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <nav class="navbar navbar-custom">
+            <div class="container-fluid">
+                <span class="navbar-brand mb-0 h1"><i class="bi bi-plus-circle"></i> Add New Project</span>
+                <div class="d-flex align-items-center">
+                    <span class="me-3" sec:authentication="name">User</span>
+                    <form th:action="@{/logout}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-box-arrow-right"></i> Logout</button>
+                    </form>
+                </div>
+            </div>
+        </nav>
+
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <h5 class="mb-0">Project Details</h5>
+            </div>
+            <div class="card-body">
+                <form th:action="@{/project/add}" th:object="${project}" method="post">
+                    <h6 class="border-bottom pb-2 mb-3"><i class="bi bi-briefcase"></i> Basic Information</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Project Name *</label>
+                            <input type="text" class="form-control" th:field="*{projectName}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Job Title / Project Role *</label>
+                            <input type="text" class="form-control" th:field="*{jobTitle}" required>
+                        </div>
+                    </div>
+
+                    <h6 class="border-bottom pb-2 mb-3 mt-4"><i class="bi bi-building"></i> Vendor Information</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Vendor Company Name *</label>
+                            <input type="text" class="form-control" th:field="*{vendorCompanyName}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Vendor Location</label>
+                            <input type="text" class="form-control" th:field="*{vendorLocation}">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">POC Name</label>
+                            <input type="text" class="form-control" th:field="*{pocName}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">POC Email</label>
+                            <input type="email" class="form-control" th:field="*{pocEmail}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">POC Phone</label>
+                            <input type="tel" class="form-control" th:field="*{pocPhone}">
+                        </div>
+                    </div>
+
+                    <h6 class="border-bottom pb-2 mb-3 mt-4"><i class="bi bi-briefcase-fill"></i> Client Information</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Client Company Name *</label>
+                            <input type="text" class="form-control" th:field="*{clientCompanyName}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Client Location</label>
+                            <input type="text" class="form-control" th:field="*{clientLocation}">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Work Mode</label>
+                            <select class="form-select" th:field="*{workMode}">
+                                <option value="">Select...</option>
+                                <option value="Onsite">Onsite</option>
+                                <option value="Remote">Remote</option>
+                                <option value="Hybrid">Hybrid</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Assign Employee</label>
+                            <select class="form-select" th:field="*{employee.id}">
+                                <option value="">Select Employee...</option>
+                                <option th:each="emp : ${employees}" th:value="${emp.id}" th:text="${emp.employeeId + ' - ' + emp.fullName}">EMP001 - John Doe</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <h6 class="border-bottom pb-2 mb-3 mt-4"><i class="bi bi-cash-coin"></i> Financial Information</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Vendor Pay Rate ($/hr)</label>
+                            <input type="number" step="0.01" class="form-control" th:field="*{vendorPayRate}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Candidate Pay Rate ($/hr)</label>
+                            <input type="number" step="0.01" class="form-control" th:field="*{candidatePayRate}">
+                        </div>
+                    </div>
+
+                    <h6 class="border-bottom pb-2 mb-3 mt-4"><i class="bi bi-calendar"></i> Timeline</h6>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Project Start Date</label>
+                            <input type="date" class="form-control" th:field="*{projectStartDate}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Project End Date</label>
+                            <input type="date" class="form-control" th:field="*{projectEndDate}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" th:field="*{status}">
+                                <option value="ACTIVE">Active</option>
+                                <option value="COMPLETED">Completed</option>
+                                <option value="EXTENDED">Extended</option>
+                                <option value="TERMINATED">Terminated</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Agreement Terms</label>
+                            <textarea class="form-control" th:field="*{agreementTerms}" rows="3"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Save Project</button>
+                        <a href="/project/list" class="btn btn-secondary"><i class="bi bi-x-circle"></i> Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Projects - HRMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root { --sidebar-width: 250px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fa; }
+        .sidebar { position: fixed; top: 0; left: 0; height: 100vh; width: var(--sidebar-width); background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding-top: 20px; z-index: 1000; }
+        .sidebar .brand { padding: 15px 25px; color: white; font-size: 24px; font-weight: bold; text-decoration: none; display: block; }
+        .sidebar .nav-link { color: rgba(255, 255, 255, 0.8); padding: 12px 25px; margin: 5px 0; transition: all 0.3s; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { background: rgba(255, 255, 255, 0.1); color: white; }
+        .main-content { margin-left: var(--sidebar-width); padding: 20px; min-height: 100vh; }
+        .navbar-custom { background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 30px; padding: 15px 20px; border-radius: 10px; }
+        .card { border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1); background: white; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <a href="/dashboard" class="brand"><i class="bi bi-buildings"></i> HRMS</a>
+        <nav class="nav flex-column mt-4">
+            <a class="nav-link" href="/dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a class="nav-link" href="/employee/list"><i class="bi bi-people"></i> Employees</a>
+            <a class="nav-link active" href="/project/list"><i class="bi bi-briefcase"></i> Projects</a>
+            <a class="nav-link" href="/offboarding/list"><i class="bi bi-box-arrow-right"></i> Offboarding</a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <nav class="navbar navbar-custom">
+            <div class="container-fluid">
+                <span class="navbar-brand mb-0 h1"><i class="bi bi-briefcase"></i> Project Management</span>
+                <div class="d-flex align-items-center">
+                    <span class="me-3" sec:authentication="name">User</span>
+                    <form th:action="@{/logout}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-box-arrow-right"></i> Logout</button>
+                    </form>
+                </div>
+            </div>
+        </nav>
+
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show"><i class="bi bi-check-circle"></i> <span th:text="${success}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show"><i class="bi bi-exclamation-triangle"></i> <span th:text="${error}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">All Projects</h5>
+                    <a href="/project/add" class="btn btn-light btn-sm"><i class="bi bi-plus-circle"></i> Add Project</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <form class="mb-3" method="get" action="/project/list">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="search" placeholder="Search projects..." th:value="${search}">
+                        <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Search</button>
+                    </div>
+                </form>
+
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Project Name</th>
+                                <th>Client</th>
+                                <th>Vendor</th>
+                                <th>Employee</th>
+                                <th>Status</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="project : ${projects}">
+                                <td th:text="${project.projectName}">Project A</td>
+                                <td th:text="${project.clientCompanyName}">Client Inc</td>
+                                <td th:text="${project.vendorCompanyName}">Vendor LLC</td>
+                                <td th:text="${project.employee != null ? project.employee.fullName : 'Unassigned'}">John Doe</td>
+                                <td>
+                                    <span class="badge"
+                                          th:classappend="${project.status == 'ACTIVE' ? 'bg-success' : (project.status == 'COMPLETED' ? 'bg-secondary' : 'bg-info')}"
+                                          th:text="${project.status}">ACTIVE</span>
+                                </td>
+                                <td th:text="${project.projectStartDate != null ? #temporals.format(project.projectStartDate, 'MMM dd, yyyy') : 'N/A'}">Jan 01, 2024</td>
+                                <td th:text="${project.projectEndDate != null ? #temporals.format(project.projectEndDate, 'MMM dd, yyyy') : 'N/A'}">Dec 31, 2024</td>
+                                <td>
+                                    <a th:href="@{/project/view/{id}(id=${project.id})}" class="btn btn-sm btn-info"><i class="bi bi-eye"></i></a>
+                                    <a th:href="@{/project/edit/{id}(id=${project.id})}" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
+                                    <form th:action="@{/project/delete/{id}(id=${project.id})}" method="post" class="d-inline" onsubmit="return confirm('Are you sure?');" sec:authorize="hasRole('ADMIN')">
+                                        <button type="submit" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(projects)}">
+                                <td colspan="8" class="text-center text-muted">No projects found</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

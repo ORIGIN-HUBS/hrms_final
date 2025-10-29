@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Support Tickets - HRMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+        .priority-badge {
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-size: 0.7em;
+            font-weight: 500;
+        }
+        .table th {
+            border-top: none;
+            font-weight: 600;
+            color: #495057;
+        }
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+        .filter-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .stats-card {
+            transition: transform 0.3s;
+        }
+        .stats-card:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col">
+                <h2 class="text-primary">
+                    <i class="bi bi-gear"></i> Admin - Support Tickets Management
+                </h2>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Support Tickets</li>
+                    </ol>
+                </nav>
+            </div>
+            <div class="col-auto">
+                <a href="/dashboard" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card stats-card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <h6 class="card-title mb-0">Total Tickets</h6>
+                                <h3 class="mb-0" th:text="${tickets.totalElements}">0</h3>
+                            </div>
+                            <i class="bi bi-ticket-perforated fs-1 opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card bg-warning text-white">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <h6 class="card-title mb-0">Open Tickets</h6>
+                                <h3 class="mb-0" th:text="${openTicketsCount}">0</h3>
+                            </div>
+                            <i class="bi bi-exclamation-triangle fs-1 opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card bg-info text-white">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <h6 class="card-title mb-0">This Page</h6>
+                                <h3 class="mb-0" th:text="${tickets.numberOfElements}">0</h3>
+                            </div>
+                            <i class="bi bi-list-ul fs-1 opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card bg-success text-white">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <h6 class="card-title mb-0">Pages</h6>
+                                <h3 class="mb-0" th:text="${totalPages}">0</h3>
+                            </div>
+                            <i class="bi bi-file-earmark fs-1 opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card filter-card mb-4">
+            <div class="card-body">
+                <form method="get" th:action="@{/self-service/admin/tickets}">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label text-white">Status</label>
+                            <select name="status" class="form-select">
+                                <option value="">All Statuses</option>
+                                <option th:each="status : ${statuses}" 
+                                        th:value="${status}" 
+                                        th:text="${status.displayName}"
+                                        th:selected="${selectedStatus == status.name()}">Status</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-white">Category</label>
+                            <select name="category" class="form-select">
+                                <option value="">All Categories</option>
+                                <option th:each="category : ${categories}" 
+                                        th:value="${category}" 
+                                        th:text="${category.displayName}"
+                                        th:selected="${selectedCategory == category.name()}">Category</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-white">Priority</label>
+                            <select name="priority" class="form-select">
+                                <option value="">All Priorities</option>
+                                <option th:each="priority : ${priorities}" 
+                                        th:value="${priority}" 
+                                        th:text="${priority.displayName}"
+                                        th:selected="${selectedPriority == priority.name()}">Priority</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-light me-2">
+                                <i class="bi bi-funnel"></i> Filter
+                            </button>
+                            <a href="/self-service/admin/tickets" class="btn btn-outline-light">
+                                <i class="bi bi-arrow-clockwise"></i> Reset
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Success/Error Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Tickets Table -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-list-ul"></i> Support Tickets
+                </h5>
+            </div>
+            <div class="card-body">
+                <div th:if="${tickets.empty}" class="text-center py-5">
+                    <i class="bi bi-inbox display-1 text-muted"></i>
+                    <h4 class="mt-3">No tickets found</h4>
+                    <p class="text-muted">No support tickets match your current filters.</p>
+                </div>
+
+                <div th:unless="${tickets.empty}">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Ticket #</th>
+                                    <th>Employee</th>
+                                    <th>Subject</th>
+                                    <th>Category</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Assigned To</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="ticket : ${tickets.content}">
+                                    <td>
+                                        <strong th:text="${ticket.ticketNumber}">TKT-001</strong>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong th:text="${ticket.employee.firstName + ' ' + ticket.employee.lastName}">Employee Name</strong>
+                                            <br>
+                                            <small class="text-muted" th:text="${ticket.employee.workEmail ?: ticket.employee.personalEmail}">email@example.com</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span th:text="${#strings.abbreviate(ticket.subject, 50)}" th:title="${ticket.subject}">Subject</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary" th:text="${ticket.category.displayName}">Category</span>
+                                    </td>
+                                    <td>
+                                        <span th:class="'priority-badge'" 
+                                              th:text="${ticket.priority.displayName}"
+                                              th:style="${ticket.priority.name() == 'LOW' ? 'background-color: #28a745; color: #fff;' : 
+                                                        ticket.priority.name() == 'MEDIUM' ? 'background-color: #ffc107; color: #000;' :
+                                                        ticket.priority.name() == 'HIGH' ? 'background-color: #fd7e14; color: #fff;' :
+                                                        'background-color: #dc3545; color: #fff;'}">Priority</span>
+                                    </td>
+                                    <td>
+                                        <span th:class="'status-badge'" 
+                                              th:text="${ticket.status.displayName}"
+                                              th:style="${ticket.status.name() == 'OPEN' ? 'background-color: #ffc107; color: #000;' : 
+                                                        ticket.status.name() == 'IN_PROGRESS' ? 'background-color: #17a2b8; color: #fff;' :
+                                                        ticket.status.name() == 'RESOLVED' ? 'background-color: #28a745; color: #fff;' :
+                                                        'background-color: #6c757d; color: #fff;'}">Status</span>
+                                    </td>
+                                    <td>
+                                        <span th:text="${#temporals.format(ticket.createdAt, 'MMM dd, yyyy')}">Date</span>
+                                        <br>
+                                        <small class="text-muted" th:text="${#temporals.format(ticket.createdAt, 'HH:mm')}">Time</small>
+                                    </td>
+                                    <td>
+                                        <span th:if="${ticket.assignedTo}" 
+                                              th:text="${ticket.assignedTo.firstName + ' ' + ticket.assignedTo.lastName}">Assigned</span>
+                                        <span th:unless="${ticket.assignedTo}" class="text-warning">Unassigned</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a th:href="@{/self-service/view-ticket/{id}(id=${ticket.id})}" 
+                                               class="btn btn-outline-primary btn-sm" title="View Details">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-success btn-sm" 
+                                                    data-bs-toggle="modal" 
+                                                    th:data-bs-target="'#statusModal' + ${ticket.id}"
+                                                    title="Update Status">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-info btn-sm" 
+                                                    data-bs-toggle="modal" 
+                                                    th:data-bs-target="'#notesModal' + ${ticket.id}"
+                                                    title="Add Notes">
+                                                <i class="bi bi-sticky"></i>
+                                            </button>
+                                        </div>
+
+                                        <!-- Status Update Modal -->
+                                        <div class="modal fade" th:id="'statusModal' + ${ticket.id}" tabindex="-1">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <form th:action="@{/self-service/admin/update-status/{id}(id=${ticket.id})}" method="post">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title">Update Ticket Status</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="mb-3">
+                                                                <label class="form-label">Status</label>
+                                                                <select name="status" class="form-select" required>
+                                                                    <option th:each="status : ${statuses}" 
+                                                                            th:value="${status}" 
+                                                                            th:text="${status.displayName}"
+                                                                            th:selected="${status == ticket.status}">Status</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label">Resolution (Optional)</label>
+                                                                <textarea name="resolution" class="form-control" rows="3" 
+                                                                          placeholder="Provide resolution details if resolving the ticket..."></textarea>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                            <button type="submit" class="btn btn-primary">Update Status</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Notes Modal -->
+                                        <div class="modal fade" th:id="'notesModal' + ${ticket.id}" tabindex="-1">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <form th:action="@{/self-service/admin/add-notes/{id}(id=${ticket.id})}" method="post">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title">Add Admin Notes</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="mb-3">
+                                                                <label class="form-label">Current Notes</label>
+                                                                <p th:if="${ticket.adminNotes}" 
+                                                                   th:text="${ticket.adminNotes}" 
+                                                                   class="form-control-plaintext bg-light p-2 rounded"
+                                                                   style="white-space: pre-wrap;">Current notes</p>
+                                                                <p th:unless="${ticket.adminNotes}" class="text-muted">No notes yet.</p>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label">Add/Update Notes</label>
+                                                                <textarea name="notes" class="form-control" rows="4" 
+                                                                          placeholder="Add your notes here..." required></textarea>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                            <button type="submit" class="btn btn-info">Save Notes</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <nav th:if="${totalPages > 1}" aria-label="Tickets pagination" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            <li th:class="${currentPage == 0} ? 'page-item disabled' : 'page-item'">
+                                <a th:href="@{/self-service/admin/tickets(page=${currentPage - 1}, status=${selectedStatus}, category=${selectedCategory}, priority=${selectedPriority})}" 
+                                   class="page-link">Previous</a>
+                            </li>
+                            
+                            <li th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}"
+                                th:class="${pageNum == currentPage} ? 'page-item active' : 'page-item'">
+                                <a th:href="@{/self-service/admin/tickets(page=${pageNum}, status=${selectedStatus}, category=${selectedCategory}, priority=${selectedPriority})}" 
+                                   th:text="${pageNum + 1}" 
+                                   class="page-link">1</a>
+                            </li>
+                            
+                            <li th:class="${currentPage == totalPages - 1} ? 'page-item disabled' : 'page-item'">
+                                <a th:href="@{/self-service/admin/tickets(page=${currentPage + 1}, status=${selectedStatus}, category=${selectedCategory}, priority=${selectedPriority})}" 
+                                   class="page-link">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

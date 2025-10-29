@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offboarding Management - HRMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            --sidebar-width: 280px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        /* Enhanced Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%);
+            padding: 0;
+            z-index: 1000;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-header {
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .sidebar-brand {
+            color: white;
+            text-decoration: none;
+            font-size: 28px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-nav {
+            padding: 20px 0;
+        }
+
+        .nav-section {
+            margin-bottom: 30px;
+        }
+
+        .nav-section-title {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            padding: 0 25px;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 15px 25px;
+            margin: 0 15px 8px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-weight: 500;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .nav-link i {
+            font-size: 18px;
+            min-width: 20px;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        /* Top Header */
+        .top-header {
+            background: white;
+            padding: 20px 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2d3748;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .page-title i {
+            padding: 12px;
+            border-radius: 12px;
+            background: var(--danger-gradient);
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Content Area */
+        .content-area {
+            padding: 30px;
+        }
+
+        /* Stats Cards */
+        .stats-row {
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+
+        .stat-card.primary::before { background: var(--primary-gradient); }
+        .stat-card.success::before { background: var(--success-gradient); }
+        .stat-card.warning::before { background: var(--warning-gradient); }
+        .stat-card.danger::before { background: var(--danger-gradient); }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            margin-bottom: 15px;
+        }
+
+        .stat-card.primary .stat-icon { background: var(--primary-gradient); }
+        .stat-card.success .stat-icon { background: var(--success-gradient); }
+        .stat-card.warning .stat-icon { background: var(--warning-gradient); }
+        .stat-card.danger .stat-icon { background: var(--danger-gradient); }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        /* Main Card */
+        .main-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: var(--danger-gradient);
+            color: white;
+            padding: 25px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-modern {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-modern:hover {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        /* Enhanced Table */
+        .table-modern {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+        }
+
+        .table-modern thead th {
+            background: var(--danger-gradient);
+            color: white;
+            border: none;
+            padding: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        .table-modern tbody td {
+            padding: 15px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .table-modern tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-pending {
+            background: linear-gradient(135deg, #fef5e7 0%, #f6e05e 100%);
+            color: #744210;
+        }
+
+        .status-in-progress {
+            background: linear-gradient(135deg, #bee3f8 0%, #90cdf4 100%);
+            color: #1a365d;
+        }
+
+        .status-completed {
+            background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
+            color: #22543d;
+        }
+
+        .status-cancelled {
+            background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+            color: #742a2a;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .action-btn.view {
+            background: var(--success-gradient);
+            color: white;
+        }
+
+        .action-btn.edit {
+            background: var(--warning-gradient);
+            color: white;
+        }
+
+        .action-btn.complete {
+            background: var(--success-gradient);
+            color: white;
+        }
+
+        .action-btn.cancel {
+            background: var(--danger-gradient);
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Employee Info in Table */
+        .employee-info-cell {
+            display: flex;
+            align-items: center;
+        }
+
+        .employee-avatar-small {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: var(--danger-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.8rem;
+            margin-right: 10px;
+        }
+
+        .employee-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .employee-name {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 2px;
+        }
+
+        .employee-id {
+            font-size: 0.85rem;
+            color: #718096;
+        }
+
+        /* Priority Indicators */
+        .priority-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .priority-high {
+            background: #e53e3e;
+        }
+
+        .priority-medium {
+            background: #ed8936;
+        }
+
+        .priority-low {
+            background: #38a169;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .stats-row .col-md-3 {
+                margin-bottom: 20px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <a href="/dashboard" class="sidebar-brand">
+                <i class="bi bi-clock-fill"></i>
+                <span>HRMS Pro</span>
+            </a>
+        </div>
+        
+        <div class="sidebar-nav">
+            <!-- Main Section -->
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <a href="/dashboard" class="nav-link">
+                    <i class="bi bi-house"></i>
+                    Dashboard
+                </a>
+            </div>
+
+            <!-- HR Management -->
+            <div class="nav-section" sec:authorize="hasAnyRole('ADMIN', 'HR')">
+                <div class="nav-section-title">HR Management</div>
+                <a href="/employee/list" class="nav-link">
+                    <i class="bi bi-people"></i>
+                    Employees
+                </a>
+                <a href="/project/list" class="nav-link">
+                    <i class="bi bi-diagram-3"></i>
+                    Projects
+                </a>
+                <a href="/timesheet/approvals" class="nav-link">
+                    <i class="bi bi-check-circle"></i>
+                    Approvals
+                </a>
+                <a href="/offboarding/list" class="nav-link active">
+                    <i class="bi bi-box-arrow-left"></i>
+                    Offboarding
+                </a>
+            </div>
+
+            <!-- Time & Finance -->
+            <div class="nav-section">
+                <div class="nav-section-title">Time & Finance</div>
+                <a href="/timesheet/list" class="nav-link">
+                    <i class="bi bi-clock"></i>
+                    Timesheets
+                </a>
+                <a href="/invoice/dashboard" class="nav-link">
+                    <i class="bi bi-receipt"></i>
+                    Invoices
+                </a>
+            </div>
+
+            <!-- Documents -->
+            <div class="nav-section">
+                <div class="nav-section-title">Documents</div>
+                <a href="/documents/list" class="nav-link">
+                    <i class="bi bi-file-earmark-text"></i>
+                    All Documents
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Header -->
+        <div class="top-header">
+            <h1 class="page-title">
+                <i class="bi bi-box-arrow-left"></i>
+                Offboarding Management
+            </h1>
+            <div class="user-info">
+                <span th:text="${#authentication.name}">admin</span>
+                <div class="user-avatar" th:text="${#strings.toUpperCase(#strings.substring(#authentication.name, 0, 1))}">A</div>
+                <span class="badge bg-primary" sec:authorize="hasRole('HR')">HR Manager</span>
+                <span class="badge bg-success" sec:authorize="hasRole('ADMIN')">Admin</span>
+                <form th:action="@{/logout}" method="post" style="display: inline;">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-box-arrow-right me-1"></i> Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Statistics Cards -->
+            <div class="row stats-row">
+                <div class="col-md-3">
+                    <div class="stat-card primary">
+                        <div class="stat-icon">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <div class="stat-value" th:text="${offboardingStats?.totalOffboardings ?: 0}">0</div>
+                        <div class="stat-label">Total Cases</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card warning">
+                        <div class="stat-icon">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                        <div class="stat-value" th:text="${offboardingStats?.inProgressOffboardings ?: 0}">0</div>
+                        <div class="stat-label">In Progress</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card success">
+                        <div class="stat-icon">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="stat-value" th:text="${offboardingStats?.completedOffboardings ?: 0}">0</div>
+                        <div class="stat-label">Completed</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card danger">
+                        <div class="stat-icon">
+                            <i class="bi bi-x-circle"></i>
+                        </div>
+                        <div class="stat-value" th:text="${offboardingStats?.cancelledOffboardings ?: 0}">0</div>
+                        <div class="stat-label">Cancelled</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Offboarding Card -->
+            <div class="main-card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="bi bi-clipboard-check"></i>
+                        Employee Offboarding Cases
+                    </h2>
+                    <div class="card-actions">
+                        <a href="/offboarding/initiate" class="btn-modern">
+                            <i class="bi bi-plus-circle"></i>
+                            Initiate Offboarding
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <!-- Offboarding Table -->
+                    <div th:if="${offboardingList != null and !offboardingList.isEmpty()}">
+                        <table class="table table-modern" id="offboardingTable">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Department</th>
+                                    <th>Last Working Day</th>
+                                    <th>Reason</th>
+                                    <th>Status</th>
+                                    <th>Initiated On</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="offboarding : ${offboardingList}">
+                                    <td>
+                                        <div class="employee-info-cell">
+                                            <div class="employee-avatar-small" th:text="${offboarding.employee != null ? #strings.toUpperCase(#strings.substring(offboarding.employee.firstName, 0, 1)) + #strings.toUpperCase(#strings.substring(offboarding.employee.lastName, 0, 1)) : 'N/A'}">JD</div>
+                                            <div class="employee-details">
+                                                <div class="employee-name" th:text="${offboarding.employee != null ? offboarding.employee.firstName + ' ' + offboarding.employee.lastName : 'Unknown'}">John Doe</div>
+                                                <div class="employee-id" th:text="${offboarding.employee != null ? offboarding.employee.employeeId : 'N/A'}">EMP001</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td th:text="${offboarding.employee != null ? offboarding.employee.department : 'N/A'}">Engineering</td>
+                                    <td th:text="${offboarding.lastWorkingDay != null ? #temporals.format(offboarding.lastWorkingDay, 'MMM dd, yyyy') : 'Not set'}">Jan 31, 2024</td>
+                                    <td th:text="${offboarding.reason ?: 'Not specified'}">Resignation</td>
+                                    <td>
+                                        <span class="status-badge" 
+                                              th:class="'status-badge status-' + ${#strings.toLowerCase(#strings.replace(offboarding.status ?: 'pending', '_', '-'))}"
+                                              th:text="${offboarding.status ?: 'PENDING'}">PENDING</span>
+                                    </td>
+                                    <td th:text="${offboarding.initiatedDate != null ? #temporals.format(offboarding.initiatedDate, 'MMM dd, yyyy') : 'N/A'}">Jan 15, 2024</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a th:href="@{'/offboarding/view/' + ${offboarding.id}}" class="action-btn view">
+                                                <i class="bi bi-eye"></i> View
+                                            </a>
+                                            <a th:href="@{'/offboarding/edit/' + ${offboarding.id}}" 
+                                               class="action-btn edit"
+                                               th:if="${offboarding.status != 'COMPLETED' and offboarding.status != 'CANCELLED'}">
+                                                <i class="bi bi-pencil"></i> Edit
+                                            </a>
+                                            <a th:href="@{'/offboarding/complete/' + ${offboarding.id}}" 
+                                               class="action-btn complete"
+                                               th:if="${offboarding.status == 'IN_PROGRESS'}"
+                                               onclick="return confirm('Are you sure you want to complete this offboarding process?')">
+                                                <i class="bi bi-check"></i> Complete
+                                            </a>
+                                            <a th:href="@{'/offboarding/cancel/' + ${offboarding.id}}" 
+                                               class="action-btn cancel"
+                                               th:if="${offboarding.status != 'COMPLETED' and offboarding.status != 'CANCELLED'}"
+                                               onclick="return confirm('Are you sure you want to cancel this offboarding process?')">
+                                                <i class="bi bi-x"></i> Cancel
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div class="empty-state" th:if="${offboardingList == null or offboardingList.isEmpty()}">
+                        <i class="bi bi-clipboard-x"></i>
+                        <h4>No Offboarding Cases Found</h4>
+                        <p>No employee offboarding processes have been initiated yet.</p>
+                        <a href="/offboarding/initiate" class="btn btn-primary mt-3">
+                            <i class="bi bi-plus-circle me-2"></i>
+                            Initiate First Offboarding
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Initialize DataTable
+            const table = $('#offboardingTable').DataTable({
+                responsive: true,
+                pageLength: 10,
+                order: [[5, 'desc']],
+                language: {
+                    search: "Search offboarding cases:",
+                    lengthMenu: "Show _MENU_ cases per page",
+                    info: "Showing _START_ to _END_ of _TOTAL_ cases"
+                }
+            });
+
+            // Add smooth animations
+            $('.stat-card').each(function(index) {
+                $(this).delay(index * 100).queue(function(next) {
+                    $(this).addClass('animated');
+                    next();
+                });
+            });
+
+            // Confirmation for complete/cancel actions
+            $('.action-btn.complete').on('click', function(e) {
+                if (!confirm('Are you sure you want to complete this offboarding process? This action cannot be undone.')) {
+                    e.preventDefault();
+                }
+            });
+
+            $('.action-btn.cancel').on('click', function(e) {
+                if (!confirm('Are you sure you want to cancel this offboarding process?')) {
+                    e.preventDefault();
+                }
+            });
+        });
+
+        // Success/Error message handling
+        setTimeout(function() {
+            $('.alert').fadeOut('slow');
+        }, 5000);
+    </script>
+</body>
+</html>

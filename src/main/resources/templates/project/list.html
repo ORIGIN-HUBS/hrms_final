@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project List - HRMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --sidebar-width: 250px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding-top: 20px;
+            z-index: 1000;
+        }
+
+        .sidebar .brand {
+            padding: 15px 25px;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-decoration: none;
+            display: block;
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 12px 25px;
+            margin: 5px 0;
+            border-radius: 0;
+            transition: all 0.3s;
+        }
+
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 20px;
+            min-height: 100vh;
+            background: #f8f9fa;
+        }
+
+        .navbar-custom {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            padding: 15px 20px;
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <a href="/dashboard" class="brand">
+            <i class="bi bi-buildings"></i> HRMS
+        </a>
+        <nav class="nav flex-column mt-4">
+            <a class="nav-link" href="/dashboard">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+            <div sec:authorize="hasAnyRole('ADMIN', 'HR')">
+                <a class="nav-link" href="/employee/list">
+                    <i class="bi bi-people"></i> Employees
+                </a>
+                <a class="nav-link active" href="/project/list">
+                    <i class="bi bi-briefcase"></i> Projects
+                </a>
+                <a class="nav-link" href="/documents">
+                    <i class="bi bi-file-earmark-text"></i> Documents
+                </a>
+                <a class="nav-link" href="/offboarding/list">
+                    <i class="bi bi-box-arrow-right"></i> Offboarding
+                </a>
+                <div sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link" href="/users">
+                        <i class="bi bi-person-gear"></i> User Management
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <nav class="navbar navbar-custom">
+            <div class="container-fluid">
+                <span class="navbar-brand mb-0 h1">
+                    <i class="bi bi-briefcase"></i> Project Management
+                </span>
+                <div class="d-flex align-items-center">
+                    <span class="me-3" sec:authentication="name">User</span>
+                    <span class="badge bg-primary me-3" sec:authorize="hasRole('ADMIN')">Admin</span>
+                    <span class="badge bg-info me-3" sec:authorize="hasRole('HR')">HR</span>
+                    <form th:action="@{/logout}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </nav>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-briefcase-fill"></i> Project List</h5>
+                    <a href="/project/add" class="btn btn-light btn-sm">
+                        <i class="bi bi-plus-circle"></i> Add New Project
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Search Form -->
+                <form th:action="@{/project/list}" method="get" class="mb-4">
+                    <div class="row">
+                        <div class="col-md-10">
+                            <input type="text" class="form-control" name="search" th:value="${search}" 
+                                   placeholder="Search projects by name, client company, or job title...">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Projects Table -->
+                <div th:if="${projects != null and !projects.isEmpty()}" class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Project Name</th>
+                                <th>Client Company</th>
+                                <th>Job Title</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Status</th>
+                                <th>Pay Rate</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="project : ${projects}">
+                                <td>
+                                    <strong th:text="${project.projectName}">Project Name</strong>
+                                    <br>
+                                    <small class="text-muted" th:text="${project.jobTitle}">Job Title</small>
+                                </td>
+                                <td th:text="${project.clientCompanyName}">Client Company</td>
+                                <td th:text="${project.jobTitle}">Job Title</td>
+                                <td th:text="${project.projectStartDate != null ? #temporals.format(project.projectStartDate, 'MMM dd, yyyy') : 'N/A'}">Start Date</td>
+                                <td>
+                                    <span th:if="${project.projectEndDate}" th:text="${#temporals.format(project.projectEndDate, 'MMM dd, yyyy')}">End Date</span>
+                                    <span th:unless="${project.projectEndDate}" class="text-muted">Ongoing</span>
+                                </td>
+                                <td>
+                                    <span th:switch="${project.status}">
+                                        <span th:case="'ACTIVE'" class="badge bg-success">Active</span>
+                                        <span th:case="'COMPLETED'" class="badge bg-primary">Completed</span>
+                                        <span th:case="'EXTENDED'" class="badge bg-info">Extended</span>
+                                        <span th:case="'TERMINATED'" class="badge bg-danger">Terminated</span>
+                                        <span th:case="*" class="badge bg-secondary" th:text="${project.status}">Status</span>
+                                    </span>
+                                </td>
+                                <td>
+                                    <span th:if="${project.candidatePayRate}" th:text="'$' + ${#numbers.formatDecimal(project.candidatePayRate, 0, 'COMMA', 2, 'POINT')}">Pay Rate</span>
+                                    <span th:unless="${project.candidatePayRate}" class="text-muted">N/A</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a th:href="@{/project/view/{id}(id=${project.id})}" class="btn btn-outline-info btn-sm" title="View">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a th:href="@{/project/edit/{id}(id=${project.id})}" class="btn btn-outline-warning btn-sm" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form th:action="@{/project/delete/{id}(id=${project.id})}" method="post" class="d-inline"
+                                              onsubmit="return confirm('Are you sure you want to delete this project?')">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- No Projects Message -->
+                <div th:if="${projects == null or projects.isEmpty()}" class="text-center py-5">
+                    <i class="bi bi-briefcase display-1 text-muted mb-3"></i>
+                    <h4 class="text-muted">No Projects Found</h4>
+                    <p class="text-muted" th:if="${search != null and !search.isEmpty()}">
+                        No projects found matching your search criteria.
+                        <a th:href="@{/project/list}" class="btn btn-outline-secondary btn-sm ms-2">
+                            <i class="bi bi-arrow-clockwise"></i> Clear Search
+                        </a>
+                    </p>
+                    <p class="text-muted" th:unless="${search != null and !search.isEmpty()}">
+                        Start by creating your first project.
+                    </p>
+                    <a href="/project/add" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Create First Project
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Projects - HRMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --danger-color: #dc2626;
+            --sidebar-width: 280px;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 0;
+            z-index: 1000;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar .brand {
+            padding: 24px 20px;
+            color: white;
+            font-size: 20px;
+            font-weight: 700;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar .brand i {
+            margin-right: 12px;
+            font-size: 24px;
+        }
+
+        .sidebar .nav-section {
+            padding: 16px 0;
+        }
+
+        .sidebar .nav-section-title {
+            padding: 8px 20px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 12px 20px;
+            margin: 0;
+            border-radius: 0;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 12px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border-right: 3px solid #3b82f6;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            background-color: #f8fafc;
+        }
+
+        .header {
+            background: white;
+            padding: 16px 32px;
+            border-bottom: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            margin: 0;
+            color: #1e293b;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .header .breadcrumb {
+            margin: 4px 0 0 0;
+            background: none;
+            padding: 0;
+        }
+
+        .header .breadcrumb-item {
+            color: #64748b;
+        }
+
+        .header .breadcrumb-item.active {
+            color: var(--primary-color);
+        }
+
+        .content-wrapper {
+            padding: 32px;
+        }
+
+        /* Card Styles */
+        .project-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .project-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #1d4ed8 100%);
+            color: white;
+            padding: 20px 24px;
+            border: none;
+        }
+
+        .card-header h3 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 24px;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: rgba(5, 150, 105, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-completed {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary-color);
+        }
+
+        .status-on-hold {
+            background: rgba(217, 119, 6, 0.1);
+            color: var(--warning-color);
+        }
+
+        /* Alert Styles */
+        .alert {
+            border: none;
+            border-radius: 8px;
+            padding: 16px 20px;
+        }
+
+        .alert-info {
+            background: rgba(59, 130, 246, 0.1);
+            color: #1e40af;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #1d4ed8 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .content-wrapper {
+                padding: 16px;
+            }
+            
+            .header {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <a href="/dashboard" class="brand">
+            <i class="bi bi-building"></i>
+            HRMS Portal
+        </a>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">Main</div>
+            <a href="/dashboard" class="nav-link">
+                <i class="bi bi-speedometer2"></i>
+                Dashboard
+            </a>
+        </div>
+
+        <div class="nav-section" sec:authorize="hasRole('EMPLOYEE')">
+            <div class="nav-section-title">Timesheet</div>
+            <a href="/profile" class="nav-link">
+                <i class="bi bi-person"></i>
+                My Profile
+            </a>
+            <a href="/timesheet/my-projects" class="nav-link active">
+                <i class="bi bi-briefcase"></i>
+                My Projects
+            </a>
+            <a href="/timesheet/submit" class="nav-link">
+                <i class="bi bi-calendar-check"></i>
+                Submit Timesheet
+            </a>
+            <a href="/timesheet/my-timesheets" class="nav-link">
+                <i class="bi bi-clock-history"></i>
+                My Timesheets
+            </a>
+        </div>
+
+        <div class="nav-section" sec:authorize="hasRole('HR')">
+            <div class="nav-section-title">HR Management</div>
+            <a href="/timesheet/approvals" class="nav-link">
+                <i class="bi bi-check2-square"></i>
+                Approve Timesheets
+            </a>
+            <a href="/employees" class="nav-link">
+                <i class="bi bi-people"></i>
+                Employees
+            </a>
+            <a href="/projects" class="nav-link">
+                <i class="bi bi-folder"></i>
+                Projects
+            </a>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title">Account</div>
+            <a href="/logout" class="nav-link">
+                <i class="bi bi-box-arrow-right"></i>
+                Logout
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+            <h1>My Projects</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+                    <li class="breadcrumb-item active">My Projects</li>
+                </ol>
+            </nav>
+        </div>
+
+        <!-- Content -->
+        <div class="content-wrapper">
+            <!-- Employee Info -->
+            <div class="project-card">
+                <div class="card-header">
+                    <h3><i class="bi bi-person-badge me-2"></i>Employee Information</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Employee ID:</strong> <span th:text="${employee.employeeId}">EMP001</span></p>
+                            <p><strong>Name:</strong> <span th:text="${employee.firstName + ' ' + employee.lastName}">John Doe</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Work Location:</strong> <span th:text="${employee.workLocation ?: 'Not Assigned'}">Main Office</span></p>
+                            <p><strong>Job Title:</strong> <span th:text="${employee.jobTitle}">Software Developer</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Projects List -->
+            <div th:if="${projects.isEmpty()}" class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong>No Active Projects:</strong> You are not currently assigned to any active projects. Please contact HR for project assignments.
+            </div>
+
+            <div th:if="${!projects.isEmpty()}">
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <h4><i class="bi bi-briefcase me-2"></i>Active Project Assignments</h4>
+                        <p class="text-muted">You are currently assigned to <span th:text="${projects.size()}">0</span> active project(s).</p>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div th:each="project : ${projects}" class="col-lg-6 col-xl-4 mb-4">
+                        <div class="project-card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h5 class="card-title" th:text="${project.projectName}">Project Name</h5>
+                                    <span class="status-badge status-active">ACTIVE</span>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <p class="card-text mb-2">
+                                        <i class="bi bi-building me-2"></i>
+                                        <strong>Client:</strong> <span th:text="${project.clientCompanyName}">Client Company</span>
+                                    </p>
+                                    <p class="card-text mb-2">
+                                        <i class="bi bi-person-badge me-2"></i>
+                                        <strong>Role:</strong> <span th:text="${project.jobTitle}">Software Developer</span>
+                                    </p>
+                                    <p class="card-text mb-2">
+                                        <i class="bi bi-geo-alt me-2"></i>
+                                        <strong>Location:</strong> <span th:text="${project.clientLocation}">Remote</span>
+                                    </p>
+                                    <p class="card-text mb-2">
+                                        <i class="bi bi-laptop me-2"></i>
+                                        <strong>Work Mode:</strong> <span th:text="${project.workMode}">Hybrid</span>
+                                    </p>
+                                </div>
+
+                                <div class="mb-3">
+                                    <h6>Project Timeline</h6>
+                                    <p class="small text-muted mb-1">
+                                        <strong>Start:</strong> <span th:text="${#temporals.format(project.projectStartDate, 'MMM dd, yyyy')}">Jan 15, 2024</span>
+                                    </p>
+                                    <p class="small text-muted mb-1">
+                                        <strong>End:</strong> <span th:text="${#temporals.format(project.projectEndDate, 'MMM dd, yyyy')}">Jun 15, 2024</span>
+                                    </p>
+                                </div>
+
+                                <div class="d-grid">
+                                    <a th:href="@{/timesheet/submit(projectId=${project.id})}" class="btn btn-primary">
+                                        <i class="bi bi-clock me-2"></i>Submit Timesheet
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="project-card">
+                <div class="card-header">
+                    <h3><i class="bi bi-lightning me-2"></i>Quick Actions</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <a href="/timesheet/submit" class="btn btn-primary w-100">
+                                <i class="bi bi-plus-circle me-2"></i>Submit New Timesheet
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="/timesheet/my-timesheets" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-clock-history me-2"></i>View My Timesheets
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="/profile" class="btn btn-outline-secondary w-100">
+                                <i class="bi bi-person me-2"></i>View My Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

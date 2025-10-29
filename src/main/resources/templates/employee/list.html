@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee List - HRMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --sidebar-width: 250px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding-top: 20px;
+            z-index: 1000;
+        }
+
+        .sidebar .brand {
+            padding: 15px 25px;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-decoration: none;
+            display: block;
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 12px 25px;
+            margin: 5px 0;
+            border-radius: 0;
+            transition: all 0.3s;
+        }
+
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 20px;
+            min-height: 100vh;
+            background: #f8f9fa;
+        }
+
+        .navbar-custom {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            padding: 15px 20px;
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+        }
+
+        .btn-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+        }
+
+        .btn-custom:hover {
+            opacity: 0.9;
+            color: white;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: #f0f0f0;
+        }
+
+        .badge-status {
+            font-size: 0.8em;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <a href="/dashboard" class="brand">
+            <i class="bi bi-buildings"></i> HRMS
+        </a>
+        <nav class="nav flex-column mt-4">
+            <a class="nav-link" href="/dashboard">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+            <div sec:authorize="hasAnyRole('ADMIN', 'HR')">
+                <a class="nav-link active" href="/employee/list">
+                    <i class="bi bi-people"></i> Employees
+                </a>
+                <a class="nav-link" href="/project/list">
+                    <i class="bi bi-briefcase"></i> Projects
+                </a>
+                <a class="nav-link" href="/documents">
+                    <i class="bi bi-file-earmark-text"></i> Documents
+                </a>
+                <a class="nav-link" href="/offboarding/list">
+                    <i class="bi bi-box-arrow-right"></i> Offboarding
+                </a>
+                <div sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link" href="/users">
+                        <i class="bi bi-person-gear"></i> User Management
+                    </a>
+                </div>
+            </div>
+            <div sec:authorize="hasRole('EMPLOYEE')">
+                <a class="nav-link" href="/employee/profile">
+                    <i class="bi bi-person"></i> My Profile
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <nav class="navbar navbar-custom">
+            <div class="container-fluid">
+                <span class="navbar-brand mb-0 h1">
+                    <i class="bi bi-people"></i> Employee Management
+                </span>
+                <div class="d-flex align-items-center">
+                    <span class="me-3" sec:authentication="name">User</span>
+                    <span class="badge bg-primary me-3" sec:authorize="hasRole('ADMIN')">Admin</span>
+                    <span class="badge bg-info me-3" sec:authorize="hasRole('HR')">HR</span>
+                    <span class="badge bg-success me-3" sec:authorize="hasRole('EMPLOYEE')">Employee</span>
+                    <form th:action="@{/logout}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </nav>
+
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${successHtml}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> <span th:utext="${successHtml}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-people-fill"></i> Employee List</h5>
+                    <div sec:authorize="hasAnyRole('ADMIN', 'HR')">
+                        <a href="/employee/add" class="btn btn-light btn-sm">
+                            <i class="bi bi-person-plus"></i> Add New Employee
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Search Form -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <form th:action="@{/employee/list}" method="get" class="d-flex">
+                            <input type="text" name="search" th:value="${search}" 
+                                   class="form-control me-2" placeholder="Search employees...">
+                            <button type="submit" class="btn btn-custom">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <span class="text-muted">
+                            Total: <strong th:text="${#lists.size(employees)}">0</strong> employees
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Employee Table -->
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Employee ID</th>
+                                <th>Name</th>
+                                <th>Work Email</th>
+                                <th>Phone</th>
+                                <th>Job Title</th>
+                                <th>Employment Type</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${#lists.isEmpty(employees)}">
+                                <td colspan="8" class="text-center text-muted py-4">
+                                    <i class="bi bi-people display-4 d-block mb-2"></i>
+                                    No employees found
+                                </td>
+                            </tr>
+                            <tr th:each="employee : ${employees}">
+                                <td>
+                                    <strong th:text="${employee.employeeId}">EMP001</strong>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong th:text="${employee.firstName + ' ' + employee.lastName}">John Doe</strong>
+                                    </div>
+                                </td>
+                                <td th:text="${employee.workEmail ?: employee.personalEmail}">john@company.com</td>
+                                <td th:text="${employee.contactNumber}">+1234567890</td>
+                                <td th:text="${employee.jobTitle}">Developer</td>
+                                <td th:text="${employee.employmentType}">Full-time</td>
+                                <td>
+                                    <span th:if="${employee.status == 'ACTIVE'}" class="badge bg-success badge-status">
+                                        <i class="bi bi-check-circle"></i> Active
+                                    </span>
+                                    <span th:if="${employee.status == 'ONBOARDING'}" class="badge bg-warning badge-status">
+                                        <i class="bi bi-person-plus"></i> Onboarding
+                                    </span>
+                                    <span th:if="${employee.status == 'OFFBOARDING'}" class="badge bg-danger badge-status">
+                                        <i class="bi bi-person-dash"></i> Offboarding
+                                    </span>
+                                    <span th:if="${employee.status == 'TERMINATED'}" class="badge bg-secondary badge-status">
+                                        <i class="bi bi-x-circle"></i> Terminated
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <!-- All roles can view employee details -->
+                                        <a th:href="@{/employee/view/{id}(id=${employee.id})}" 
+                                           class="btn btn-outline-primary btn-sm" title="View Details">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        
+                                        <!-- Admin and HR can view employee documents -->
+                                        <span sec:authorize="hasAnyRole('ADMIN', 'HR')">
+                                            <a th:href="@{/employee/{id}/documents(id=${employee.id})}" 
+                                               class="btn btn-outline-secondary btn-sm" title="View Documents">
+                                                <i class="bi bi-file-earmark-text"></i>
+                                            </a>
+                                        </span>
+                                        
+                                        <!-- Admin and HR can generate password reset links -->
+                                        <span sec:authorize="hasAnyRole('ADMIN', 'HR')">
+                                            <button class="btn btn-outline-info btn-sm" 
+                                                    th:onclick="'generateResetLink(' + ${employee.id} + ')'" 
+                                                    title="Generate Password Reset Link">
+                                                <i class="bi bi-key"></i>
+                                            </button>
+                                        </span>
+                                        
+                                        <!-- Admin and HR can edit employees -->
+                                        <span sec:authorize="hasAnyRole('ADMIN', 'HR')">
+                                            <a th:href="@{/employee/edit/{id}(id=${employee.id})}" 
+                                               class="btn btn-outline-warning btn-sm" title="Edit Employee">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        </span>
+                                        
+                                        <!-- Admin and HR can initiate offboarding -->
+                                        <span sec:authorize="hasAnyRole('ADMIN', 'HR')" th:if="${employee.status == 'ACTIVE'}">
+                                            <a th:href="@{/offboarding/initiate(employeeId=${employee.id})}" 
+                                               class="btn btn-outline-warning btn-sm" title="Initiate Offboarding">
+                                                <i class="bi bi-person-dash"></i>
+                                            </a>
+                                        </span>
+                                        
+                                        <!-- Show offboarding status if employee is being offboarded -->
+                                        <span th:if="${employee.status == 'OFFBOARDING'}">
+                                            <a th:href="@{/offboarding/list(employeeId=${employee.id})}" 
+                                               class="btn btn-outline-info btn-sm" title="View Offboarding">
+                                                <i class="bi bi-box-arrow-right"></i>
+                                            </a>
+                                        </span>
+                                        
+                                        <!-- Only Admin can delete employees -->
+                                        <span sec:authorize="hasRole('ADMIN')">
+                                            <form th:action="@{/employee/delete/{id}(id=${employee.id})}" 
+                                                  method="post" class="d-inline"
+                                                  onsubmit="return confirm('Are you sure you want to delete this employee?')">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete Employee">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Reset Modal -->
+    <div class="modal fade" id="resetLinkModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Password Reset Link Generated</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle"></i>
+                        Password reset link has been generated successfully!
+                    </div>
+                    <div class="mb-3">
+                        <label for="resetLink" class="form-label">Reset Link:</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="resetLink" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="copyResetLink()">
+                                <i class="bi bi-clipboard"></i> Copy
+                            </button>
+                        </div>
+                    </div>
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle"></i>
+                        This link will expire in 24 hours. Share it securely with the employee.
+                    </small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function generateResetLink(employeeId) {
+            // Show loading state
+            const button = event.target.closest('button');
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="bi bi-spinner" style="animation: spin 1s linear infinite;"></i>';
+            button.disabled = true;
+
+            // Make AJAX request to generate reset link
+            fetch('/employee/' + employeeId + '/generate-reset-link', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.text())
+            .then(data => {
+                if (data.startsWith('http')) {
+                    document.getElementById('resetLink').value = data;
+                    const modal = new bootstrap.Modal(document.getElementById('resetLinkModal'));
+                    modal.show();
+                } else {
+                    alert('Error: ' + data);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to generate reset link. Please try again.');
+            })
+            .finally(() => {
+                // Restore button state
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        }
+
+        function copyResetLink() {
+            const resetLinkInput = document.getElementById('resetLink');
+            resetLinkInput.select();
+            resetLinkInput.setSelectionRange(0, 99999); // For mobile devices
+            navigator.clipboard.writeText(resetLinkInput.value);
+            
+            // Show feedback
+            const copyBtn = event.target.closest('button');
+            const originalText = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<i class="bi bi-check"></i> Copied!';
+            copyBtn.classList.remove('btn-outline-secondary');
+            copyBtn.classList.add('btn-success');
+            
+            setTimeout(() => {
+                copyBtn.innerHTML = originalText;
+                copyBtn.classList.remove('btn-success');
+                copyBtn.classList.add('btn-outline-secondary');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

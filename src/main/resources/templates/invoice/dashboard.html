@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Dashboard - HRMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --danger-color: #dc2626;
+            --info-color: #0ea5e9;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            color: #1e293b;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(20px, -20px);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            margin: 4px 0 0 0;
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, var(--success-color) 0%, #10b981 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-generate:hover {
+            background: linear-gradient(135deg, #047857 0%, var(--success-color) 100%);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .invoice-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-sent { background: #dbeafe; color: #1e40af; }
+        .status-paid { background: #d1fae5; color: #065f46; }
+        .status-overdue { background: #fee2e2; color: #991b1b; }
+
+        .table-modern {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .table-modern th {
+            background: #f8fafc;
+            border: none;
+            padding: 16px;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .table-modern td {
+            border: none;
+            padding: 16px;
+            vertical-align: middle;
+        }
+
+        .table-modern tbody tr {
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .table-modern tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border: none;
+            margin: 2px;
+            transition: all 0.2s;
+        }
+
+        .btn-view {
+            background: var(--info-color);
+            color: white;
+        }
+
+        .btn-view:hover {
+            background: #0284c7;
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar" style="position: fixed; top: 0; left: 0; height: 100vh; width: 250px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding-top: 20px; z-index: 1000;">
+        <a href="/dashboard" style="padding: 15px 25px; color: white; font-size: 24px; font-weight: bold; text-decoration: none; display: block;">
+            <i class="bi bi-buildings"></i> HRMS
+        </a>
+        <nav class="nav flex-column mt-4">
+            <a style="color: rgba(255, 255, 255, 0.8); padding: 12px 25px; margin: 5px 0; border-radius: 0; transition: all 0.3s; text-decoration: none; display: block;" href="/dashboard">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+            <div sec:authorize="hasRole('ADMIN')">
+                <a style="color: rgba(255, 255, 255, 0.8); padding: 12px 25px; margin: 5px 0; border-radius: 0; transition: all 0.3s; text-decoration: none; display: block;" href="/users">
+                    <i class="bi bi-person-gear"></i> Users
+                </a>
+            </div>
+            <div sec:authorize="hasAnyRole('ADMIN', 'HR')">
+                <a style="color: rgba(255, 255, 255, 0.8); padding: 12px 25px; margin: 5px 0; border-radius: 0; transition: all 0.3s; text-decoration: none; display: block;" href="/employee/list">
+                    <i class="bi bi-people"></i> Employees
+                </a>
+                <a style="color: rgba(255, 255, 255, 0.8); padding: 12px 25px; margin: 5px 0; border-radius: 0; transition: all 0.3s; text-decoration: none; display: block;" href="/project/list">
+                    <i class="bi bi-briefcase"></i> Projects
+                </a>
+                <a style="color: rgba(255, 255, 255, 0.8); padding: 12px 25px; margin: 5px 0; border-radius: 0; transition: all 0.3s; text-decoration: none; display: block;" href="/documents">
+                    <i class="bi bi-file-earmark-text"></i> Documents
+                </a>
+                <a style="color: rgba(255, 255, 255, 0.8); padding: 12px 25px; margin: 5px 0; border-radius: 0; transition: all 0.3s; text-decoration: none; display: block;" href="/offboarding/list">
+                    <i class="bi bi-box-arrow-right"></i> Offboarding
+                </a>
+                <a style="color: rgba(255, 255, 255, 0.8); padding: 12px 25px; margin: 5px 0; border-radius: 0; transition: all 0.3s; text-decoration: none; display: block;" href="/timesheet/list">
+                    <i class="bi bi-clock"></i> Timesheets
+                </a>
+                <a style="color: rgba(255, 255, 255, 0.8); padding: 12px 25px; margin: 5px 0; border-radius: 0; transition: all 0.3s; text-decoration: none; display: block;" href="/timesheet/approvals">
+                    <i class="bi bi-check-circle"></i> Timesheet Approvals
+                </a>
+                <a style="background: rgba(255, 255, 255, 0.1); color: white; padding: 12px 25px; margin: 5px 0; border-radius: 0; transition: all 0.3s; text-decoration: none; display: block;" href="/invoice/dashboard">
+                    <i class="bi bi-receipt"></i> Invoice Dashboard
+                </a>
+            </div>
+            <div sec:authorize="hasRole('EMPLOYEE')">
+                <a style="color: rgba(255, 255, 255, 0.8); padding: 12px 25px; margin: 5px 0; border-radius: 0; transition: all 0.3s; text-decoration: none; display: block;" href="/employee/profile">
+                    <i class="bi bi-person"></i> My Profile
+                </a>
+                <a style="color: rgba(255, 255, 255, 0.8); padding: 12px 25px; margin: 5px 0; border-radius: 0; transition: all 0.3s; text-decoration: none; display: block;" href="/timesheet/my-projects">
+                    <i class="bi bi-briefcase"></i> My Projects
+                </a>
+                <a style="color: rgba(255, 255, 255, 0.8); padding: 12px 25px; margin: 5px 0; border-radius: 0; transition: all 0.3s; text-decoration: none; display: block;" href="/timesheet/submit">
+                    <i class="bi bi-clock"></i> Submit Timesheet
+                </a>
+                <a style="color: rgba(255, 255, 255, 0.8); padding: 12px 25px; margin: 5px 0; border-radius: 0; transition: all 0.3s; text-decoration: none; display: block;" href="/timesheet/my-timesheets">
+                    <i class="bi bi-clock-history"></i> My Timesheets
+                </a>
+                <a style="color: rgba(255, 255, 255, 0.8); padding: 12px 25px; margin: 5px 0; border-radius: 0; transition: all 0.3s; text-decoration: none; display: block;" href="/employee/documents/upload">
+                    <i class="bi bi-file-earmark-arrow-up"></i> Upload Documents
+                </a>
+            </div>
+            <a style="color: rgba(255, 255, 255, 0.8); padding: 12px 25px; margin: 5px 0; border-radius: 0; transition: all 0.3s; text-decoration: none; display: block;" href="/logout">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </a>
+        </nav>
+    </div>
+    
+    <div class="main-content" style="margin-left: 280px;">
+        <!-- Header -->
+        <div class="header" style="background: white; padding: 16px 32px; border-bottom: 1px solid #e2e8f0;">
+            <h1 style="margin: 0; color: #1e293b; font-size: 28px; font-weight: 700;">Invoice Dashboard</h1>
+            <nav aria-label="breadcrumb" style="margin: 4px 0 0 0;">
+                <ol class="breadcrumb" style="background: none; padding: 0; margin: 0;">
+                    <li class="breadcrumb-item"><a href="/dashboard" style="color: var(--primary-color); text-decoration: none;">Dashboard</a></li>
+                    <li class="breadcrumb-item active" style="color: var(--primary-color);">Invoices</li>
+                </ol>
+            </nav>
+        </div>
+
+        <div class="content-wrapper" style="padding: 32px;">
+            <!-- Success/Error Messages -->
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+                <i class="bi bi-check-circle me-2"></i>
+                <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, var(--warning-color) 0%, #f59e0b 100%);">
+                        <h3 class="stat-number" th:text="${stats.pendingCount}">12</h3>
+                        <p class="stat-label">Pending Invoices</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, var(--info-color) 0%, #3b82f6 100%);">
+                        <h3 class="stat-number" th:text="${stats.sentCount}">8</h3>
+                        <p class="stat-label">Sent Invoices</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, var(--success-color) 0%, #10b981 100%);">
+                        <h3 class="stat-number" th:text="${stats.paidCount}">25</h3>
+                        <p class="stat-label">Paid Invoices</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, var(--danger-color) 0%, #ef4444 100%);">
+                        <h3 class="stat-number" th:text="${stats.overdueCount}">3</h3>
+                        <p class="stat-label">Overdue Invoices</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions Row -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="dashboard-card p-4">
+                        <h5 class="mb-3">Quick Actions</h5>
+                        <a href="/invoice/generate" class="btn btn-generate me-2">
+                            <i class="bi bi-plus-circle me-2"></i>Generate Invoice
+                        </a>
+                        <a href="/invoice/list" class="btn btn-outline-primary">
+                            <i class="bi bi-list me-2"></i>View All Invoices
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="dashboard-card p-4">
+                        <h5 class="mb-3">Financial Summary</h5>
+                        <div class="row">
+                            <div class="col-6">
+                                <p class="text-muted mb-1">Total Paid (This Month)</p>
+                                <h4 class="text-success" th:text="'$' + ${#numbers.formatDecimal(stats.totalPaidAmount, 0, 2)}">$15,420.50</h4>
+                            </div>
+                            <div class="col-6">
+                                <p class="text-muted mb-1">Outstanding Amount</p>
+                                <h4 class="text-warning" th:text="'$' + ${#numbers.formatDecimal(stats.totalPendingAmount, 0, 2)}">$8,750.00</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Invoices -->
+            <div class="dashboard-card mb-4">
+                <div class="card-header bg-transparent border-0 p-4">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clock text-warning me-2"></i>Pending Invoices
+                        <span class="badge bg-warning text-dark ms-2" th:text="${#lists.size(pendingInvoices)}">3</span>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div th:if="${#lists.isEmpty(pendingInvoices)}" class="empty-state">
+                        <i class="bi bi-receipt"></i>
+                        <h6>No Pending Invoices</h6>
+                        <p>All invoices have been processed.</p>
+                    </div>
+                    <div th:if="${!#lists.isEmpty(pendingInvoices)}">
+                        <table class="table table-modern mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Invoice ID</th>
+                                    <th>Client</th>
+                                    <th>Vendor</th>
+                                    <th>Amount</th>
+                                    <th>Period</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="invoice : ${pendingInvoices}">
+                                    <td>
+                                        <strong th:text="${invoice.invoiceId}">INV-202410-001</strong>
+                                    </td>
+                                    <td th:text="${invoice.clientName}">TechCorp Inc</td>
+                                    <td th:text="${invoice.vendorName}">VendorCorp</td>
+                                    <td>
+                                        <strong th:text="'$' + ${#numbers.formatDecimal(invoice.totalAmount, 0, 2)}">$2,400.00</strong>
+                                    </td>
+                                    <td>
+                                        <span th:text="${#temporals.format(invoice.periodStart, 'MMM dd')} + ' - ' + ${#temporals.format(invoice.periodEnd, 'MMM dd, yyyy')}">Oct 01 - Oct 07, 2024</span>
+                                    </td>
+                                    <td>
+                                        <a th:href="@{/invoice/view/{id}(id=${invoice.id})}" class="action-btn btn-view">
+                                            <i class="bi bi-eye me-1"></i>View
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Overdue Invoices -->
+            <div class="dashboard-card" th:if="${!#lists.isEmpty(overdueInvoices)}">
+                <div class="card-header bg-transparent border-0 p-4">
+                    <h5 class="mb-0 text-danger">
+                        <i class="bi bi-exclamation-triangle me-2"></i>Overdue Invoices
+                        <span class="badge bg-danger ms-2" th:text="${#lists.size(overdueInvoices)}">2</span>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-modern mb-0">
+                        <thead>
+                            <tr>
+                                <th>Invoice ID</th>
+                                <th>Client</th>
+                                <th>Vendor</th>
+                                <th>Amount</th>
+                                <th>Due Date</th>
+                                <th>Days Overdue</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="invoice : ${overdueInvoices}">
+                                <td>
+                                    <strong th:text="${invoice.invoiceId}">INV-202409-012</strong>
+                                </td>
+                                <td th:text="${invoice.clientName}">TechCorp Inc</td>
+                                <td th:text="${invoice.vendorName}">VendorCorp</td>
+                                <td>
+                                    <strong class="text-danger" th:text="'$' + ${#numbers.formatDecimal(invoice.totalAmount, 0, 2)}">$3,600.00</strong>
+                                </td>
+                                <td>
+                                    <span class="text-danger" th:text="${#temporals.format(invoice.paymentDueDate, 'MMM dd, yyyy')}">Sep 30, 2024</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-danger" th:text="${T(java.time.temporal.ChronoUnit).DAYS.between(invoice.paymentDueDate, T(java.time.LocalDate).now())} + ' days'">15 days</span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/invoice/view/{id}(id=${invoice.id})}" class="action-btn btn-view">
+                                        <i class="bi bi-eye me-1"></i>View
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

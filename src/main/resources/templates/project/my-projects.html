@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Projects - HRMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .navbar-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .sidebar {
+            background: #343a40;
+            min-height: 100vh;
+            width: 250px;
+        }
+        .sidebar .brand {
+            padding: 15px 25px;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-decoration: none;
+            display: block;
+        }
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 12px 25px;
+            margin: 5px 0;
+            border-radius: 0;
+            transition: all 0.3s;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 0;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .project-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        .status-active { background: #d4edda; color: #155724; }
+        .status-completed { background: #cce5ff; color: #004085; }
+        .status-extended { background: #fff3cd; color: #856404; }
+        .status-terminated { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <a href="/dashboard" class="brand">
+                <i class="bi bi-building"></i> HRMS
+            </a>
+            <div class="nav flex-column">
+                <div sec:authorize="hasRole('EMPLOYEE')">
+                    <a class="nav-link" href="/employee/profile">
+                        <i class="bi bi-person"></i> My Profile
+                    </a>
+                    <a class="nav-link active" href="/timesheet/my-projects">
+                        <i class="bi bi-briefcase"></i> My Projects
+                    </a>
+                    <a class="nav-link" href="/timesheet/submit">
+                        <i class="bi bi-clock"></i> Submit Timesheet
+                    </a>
+                    <a class="nav-link" href="/timesheet/my-timesheets">
+                        <i class="bi bi-clock-history"></i> My Timesheets
+                    </a>
+                    <a class="nav-link" href="/employee/documents/upload">
+                        <i class="bi bi-file-earmark-arrow-up"></i> Upload Documents
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <nav class="navbar navbar-custom">
+                <div class="container-fluid">
+                    <span class="navbar-brand mb-0 h1 text-white">
+                        <i class="bi bi-briefcase"></i> My Projects
+                    </span>
+                    <div class="navbar-nav ms-auto">
+                        <span class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle"></i> <span sec:authentication="name">User</span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/employee/profile"><i class="bi bi-person"></i> Profile</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="/logout"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+                            </ul>
+                        </span>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="container-fluid p-4">
+                <!-- Employee Info -->
+                <div class="row mb-4" th:if="${employee}">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <i class="bi bi-person-badge text-primary"></i> 
+                                    <span th:text="${employee.firstName + ' ' + employee.lastName}">Employee Name</span>
+                                </h5>
+                                <p class="card-text text-muted">
+                                    Employee ID: <span th:text="${employee.employeeId}">EMP001</span> | 
+                                    Department: <span th:text="${employee.department}">IT</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Projects List -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-briefcase"></i> My Assigned Projects
+                                    <span class="badge bg-primary ms-2" th:text="${#lists.size(projects)}">0</span>
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div th:if="${#lists.isEmpty(projects)}" class="text-center py-5">
+                                    <i class="bi bi-briefcase-fill text-muted" style="font-size: 3rem;"></i>
+                                    <h4 class="text-muted mt-3">No Projects Assigned</h4>
+                                    <p class="text-muted">You don't have any active projects assigned yet. Contact your manager for project assignments.</p>
+                                </div>
+
+                                <div class="row" th:if="${!#lists.isEmpty(projects)}">
+                                    <div class="col-md-6 col-lg-4 mb-4" th:each="project : ${projects}">
+                                        <div class="card h-100">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                    <h6 class="card-title" th:text="${project.projectName}">Project Name</h6>
+                                                    <span class="project-status" 
+                                                          th:class="'project-status status-' + ${#strings.toLowerCase(project.status)}"
+                                                          th:text="${project.status}">ACTIVE</span>
+                                                </div>
+                                                
+                                                <p class="card-text">
+                                                    <strong>Job Title:</strong> <span th:text="${project.jobTitle}">Developer</span><br>
+                                                    <strong>Client:</strong> <span th:text="${project.clientCompanyName}">Client Name</span><br>
+                                                    <strong>Work Mode:</strong> <span th:text="${project.workMode}">Remote</span>
+                                                </p>
+                                                
+                                                <div class="row text-center">
+                                                    <div class="col-6">
+                                                        <small class="text-muted">Start Date</small><br>
+                                                        <span th:text="${#temporals.format(project.projectStartDate, 'MMM dd, yyyy')}">Jan 01, 2024</span>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <small class="text-muted">End Date</small><br>
+                                                        <span th:text="${project.projectEndDate != null ? #temporals.format(project.projectEndDate, 'MMM dd, yyyy') : 'Ongoing'}">Dec 31, 2024</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="card-footer bg-light">
+                                                <div class="d-grid">
+                                                    <a th:href="@{/timesheet/submit}" class="btn btn-outline-primary btn-sm">
+                                                        <i class="bi bi-clock"></i> Submit Timesheet
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
