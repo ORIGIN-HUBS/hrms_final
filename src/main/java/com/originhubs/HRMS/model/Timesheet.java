@@ -1,5 +1,6 @@
 package com.originhubs.HRMS.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,14 +27,17 @@ public class Timesheet {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id", nullable = false)
+    @JsonIgnoreProperties({"directReports", "manager", "roles", "hibernateLazyInitializer", "handler"})
     private Employee employee;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manager_id")
+    @JsonIgnoreProperties({"directReports", "manager", "roles", "hibernateLazyInitializer", "handler"})
     private Employee manager;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
+    @JsonIgnoreProperties({"employee", "hibernateLazyInitializer", "handler"})
     private Project project;
 
     @Column(name = "week_start_date", nullable = false)
@@ -52,6 +56,7 @@ public class Timesheet {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "approved_by")
+    @JsonIgnoreProperties({"directReports", "manager", "roles", "hibernateLazyInitializer", "handler"})
     private Employee approvedBy;
 
     @Column(name = "approval_date")
@@ -100,6 +105,7 @@ public class Timesheet {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "invoice_record_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Invoice invoice;
 
     @Enumerated(EnumType.STRING)
@@ -134,9 +140,11 @@ public class Timesheet {
 
     // Relationships
     @OneToMany(mappedBy = "timesheet", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnoreProperties({"timesheet", "hibernateLazyInitializer", "handler"})
     private List<TimesheetEntry> timesheetEntries;
 
     @OneToMany(mappedBy = "timesheet", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnoreProperties({"timesheet", "hibernateLazyInitializer", "handler"})
     private List<TimesheetExpense> expenses;
 
     @PrePersist

@@ -30,14 +30,18 @@ const NotificationListScreen: React.FC<any> = ({ navigation }) => {
     setIsLoading(true);
     try {
       const data = await notificationService.getAllNotifications();
-      setNotifications(data);
-      setFilteredNotifications(data);
+      const notificationsArray = Array.isArray(data) ? data : [];
+      setNotifications(notificationsArray);
+      setFilteredNotifications(notificationsArray);
 
       const count = await notificationService.getUnreadCount();
-      setUnreadCount(count);
+      setUnreadCount(count || 0);
     } catch (error) {
       console.error('Error fetching notifications:', error);
       Alert.alert('Error', 'Failed to load notifications');
+      setNotifications([]);
+      setFilteredNotifications([]);
+      setUnreadCount(0);
     } finally {
       setIsLoading(false);
     }
@@ -52,6 +56,11 @@ const NotificationListScreen: React.FC<any> = ({ navigation }) => {
   }, [selectedType, selectedCategory, notifications]);
 
   const filterNotifications = () => {
+    if (!Array.isArray(notifications)) {
+      setFilteredNotifications([]);
+      return;
+    }
+
     let filtered = notifications;
 
     if (selectedType !== 'ALL') {
@@ -154,7 +163,7 @@ const NotificationListScreen: React.FC<any> = ({ navigation }) => {
                     {item.category}
                   </Text>
                 </View>
-                <Text style={styles.timestamp}>{formatDate(item.createdAt)}</Text>
+                <Text style={[styles.timestamp, { marginLeft: spacing.sm }]}>{formatDate(item.createdAt)}</Text>
               </View>
             </View>
           </View>
@@ -201,7 +210,7 @@ const NotificationListScreen: React.FC<any> = ({ navigation }) => {
             {['ALL', 'SUCCESS', 'INFO', 'WARNING', 'ERROR'].map(type => (
               <TouchableOpacity
                 key={type}
-                style={[styles.filterChip, selectedType === type && styles.filterChipActive]}
+                style={[styles.filterChip, selectedType === type && styles.filterChipActive, { marginRight: spacing.sm }]}
                 onPress={() => setSelectedType(type)}
               >
                 <Text style={[styles.filterChipText, selectedType === type && styles.filterChipTextActive]}>
@@ -217,7 +226,7 @@ const NotificationListScreen: React.FC<any> = ({ navigation }) => {
             {['ALL', 'DOCUMENT', 'EMPLOYEE', 'PROJECT', 'OFFBOARDING', 'TIMESHEET'].map(cat => (
               <TouchableOpacity
                 key={cat}
-                style={[styles.filterChip, selectedCategory === cat && styles.filterChipActive]}
+                style={[styles.filterChip, selectedCategory === cat && styles.filterChipActive, { marginRight: spacing.sm }]}
                 onPress={() => setSelectedCategory(cat)}
               >
                 <Text style={[styles.filterChipText, selectedCategory === cat && styles.filterChipTextActive]}>
@@ -233,7 +242,7 @@ const NotificationListScreen: React.FC<any> = ({ navigation }) => {
       <FlatList
         data={filteredNotifications}
         renderItem={renderNotification}
-        keyExtractor={item => item.id.toString()}
+        keyExtractor={item => item.id ? item.id.toString() : Math.random().toString()}
         refreshControl={
           <RefreshControl refreshing={isLoading} onRefresh={fetchNotifications} />
         }
@@ -286,7 +295,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
-    gap: spacing.sm,
   },
   filterLabel: {
     fontSize: typography.fontSize.sm,
@@ -363,7 +371,6 @@ const styles = StyleSheet.create({
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
   },
   categoryBadge: {
     paddingHorizontal: spacing.sm,

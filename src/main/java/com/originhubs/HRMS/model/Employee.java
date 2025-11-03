@@ -1,5 +1,6 @@
 package com.originhubs.HRMS.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -70,10 +71,12 @@ public class Employee {
     // Manager relationship - self-referential
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manager_id")
+    @JsonIgnoreProperties({"directReports", "manager", "hibernateLazyInitializer", "handler"})
     private Employee manager;
 
     // Direct reports
     @OneToMany(mappedBy = "manager", fetch = FetchType.LAZY)
+    @JsonIgnoreProperties({"directReports", "manager", "hibernateLazyInitializer", "handler"})
     private Set<Employee> directReports;
 
     // Manager ID for convenience queries
@@ -87,6 +90,7 @@ public class Employee {
         joinColumns = @JoinColumn(name = "employee_id"),
         inverseJoinColumns = @JoinColumn(name = "role_id")
     )
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Set<Role> roles;
 
     @Column(nullable = false)

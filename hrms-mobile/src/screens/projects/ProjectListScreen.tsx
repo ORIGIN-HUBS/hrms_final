@@ -112,7 +112,7 @@ const ProjectListScreen: React.FC<any> = ({ navigation }) => {
               </Text>
             )}
             {item.candidatePayRate && (
-              <Text style={styles.rateText}>
+              <Text style={[styles.rateText, { marginLeft: spacing.md }]}>
                 Candidate: ${item.candidatePayRate}/hr
               </Text>
             )}
@@ -199,7 +199,6 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     padding: spacing.md,
-    gap: spacing.sm,
     backgroundColor: colors.white,
     borderBottomWidth: 1,
     borderBottomColor: colors.gray[200],
@@ -221,6 +220,7 @@ const styles = StyleSheet.create({
   },
   addButton: {
     paddingHorizontal: spacing.md,
+    marginLeft: spacing.sm,
   },
   statsContainer: {
     flexDirection: 'row',
@@ -284,21 +284,20 @@ const styles = StyleSheet.create({
   projectMeta: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.md,
     marginBottom: spacing.sm,
   },
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    marginRight: spacing.md,
   },
   metaText: {
     fontSize: typography.fontSize.sm,
     color: colors.text.secondary,
+    marginLeft: spacing.xs,
   },
   rateContainer: {
     flexDirection: 'row',
-    gap: spacing.md,
     paddingTop: spacing.sm,
     borderTopWidth: 1,
     borderTopColor: colors.gray[200],

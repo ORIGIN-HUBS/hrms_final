@@ -31,6 +31,11 @@ const TimesheetListScreen: React.FC<any> = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
+    if (!Array.isArray(timesheets)) {
+      setFilteredTimesheets([]);
+      return;
+    }
+
     let filtered = timesheets;
 
     // Filter by status
@@ -56,10 +61,13 @@ const TimesheetListScreen: React.FC<any> = ({ navigation }) => {
     setIsLoading(true);
     try {
       const data = await timesheetService.getAllTimesheets();
-      setTimesheets(data);
-      setFilteredTimesheets(data);
+      const timesheetsArray = Array.isArray(data) ? data : [];
+      setTimesheets(timesheetsArray);
+      setFilteredTimesheets(timesheetsArray);
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to load timesheets');
+      setTimesheets([]);
+      setFilteredTimesheets([]);
     } finally {
       setIsLoading(false);
     }
@@ -133,6 +141,7 @@ const TimesheetListScreen: React.FC<any> = ({ navigation }) => {
           style={[
             styles.filterButton,
             filterStatus === status && styles.filterButtonActive,
+            { marginRight: spacing.xs }
           ]}
           onPress={() => setFilterStatus(status)}
         >
@@ -179,18 +188,18 @@ const TimesheetListScreen: React.FC<any> = ({ navigation }) => {
 
       <View style={styles.statsContainer}>
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>{timesheets.length}</Text>
+          <Text style={styles.statValue}>{Array.isArray(timesheets) ? timesheets.length : 0}</Text>
           <Text style={styles.statLabel}>Total</Text>
         </View>
         <View style={styles.statItem}>
           <Text style={styles.statValue}>
-            {timesheets.filter((ts) => ts.status === 'SUBMITTED').length}
+            {Array.isArray(timesheets) ? timesheets.filter((ts) => ts.status === 'SUBMITTED').length : 0}
           </Text>
           <Text style={styles.statLabel}>Pending</Text>
         </View>
         <View style={styles.statItem}>
           <Text style={styles.statValue}>
-            {timesheets.filter((ts) => ts.status === 'APPROVED').length}
+            {Array.isArray(timesheets) ? timesheets.filter((ts) => ts.status === 'APPROVED').length : 0}
           </Text>
           <Text style={styles.statLabel}>Approved</Text>
         </View>
@@ -218,7 +227,6 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     padding: spacing.md,
-    gap: spacing.sm,
     backgroundColor: colors.white,
     borderBottomWidth: 1,
     borderBottomColor: colors.gray[200],
@@ -247,7 +255,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderBottomWidth: 1,
     borderBottomColor: colors.gray[200],
-    gap: spacing.xs,
   },
   filterButton: {
     paddingHorizontal: spacing.md,
@@ -328,19 +335,19 @@ const styles = StyleSheet.create({
   timesheetMeta: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.md,
     marginBottom: spacing.sm,
   },
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
     flex: 1,
+    marginRight: spacing.md,
   },
   metaText: {
     fontSize: typography.fontSize.sm,
     color: colors.text.secondary,
     flex: 1,
+    marginLeft: spacing.xs,
   },
   amountContainer: {
     flexDirection: 'row',

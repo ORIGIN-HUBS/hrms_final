@@ -39,7 +39,7 @@ const SelfServiceDashboardScreen: React.FC<any> = ({ navigation }) => {
       const response = await apiClient.get<SelfServiceTicket[]>(
         API_CONFIG.ENDPOINTS.SELF_SERVICE_TICKETS
       );
-      const ticketData = response.data;
+      const ticketData = Array.isArray(response.data) ? response.data : [];
       setTickets(ticketData);
       
       // Calculate stats
@@ -52,6 +52,7 @@ const SelfServiceDashboardScreen: React.FC<any> = ({ navigation }) => {
     } catch (error) {
       console.error('Error fetching tickets:', error);
       Alert.alert('Error', 'Failed to load tickets');
+      setTickets([]);
     } finally {
       setIsLoading(false);
     }
@@ -95,7 +96,7 @@ const SelfServiceDashboardScreen: React.FC<any> = ({ navigation }) => {
           </View>
           <View style={styles.ticketMeta}>
             <StatusBadge status={item.status} size="small" />
-            <View style={[styles.priorityBadge, { backgroundColor: getPriorityColor(item.priority) + '20' }]}>
+            <View style={[styles.priorityBadge, { backgroundColor: getPriorityColor(item.priority) + '20', marginTop: spacing.xs }]}>
               <Text style={[styles.priorityText, { color: getPriorityColor(item.priority) }]}>
                 {item.priority}
               </Text>
@@ -108,7 +109,7 @@ const SelfServiceDashboardScreen: React.FC<any> = ({ navigation }) => {
             Created: {new Date(item.createdAt).toLocaleDateString()}
           </Text>
           {item.assignedTo && (
-            <Text style={styles.assignedTo}>
+            <Text style={[styles.assignedTo, { marginTop: spacing.xs }]}>
               Assigned to: {item.assignedTo.firstName} {item.assignedTo.lastName}
             </Text>
           )}
@@ -197,7 +198,7 @@ const SelfServiceDashboardScreen: React.FC<any> = ({ navigation }) => {
         </Card>
         
         {/* Recent Tickets */}
-        <Card>
+        <Card style={{ marginTop: spacing.lg }}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Recent Tickets</Text>
             <TouchableOpacity onPress={() => navigation.navigate('ViewTicket')}>
@@ -209,7 +210,7 @@ const SelfServiceDashboardScreen: React.FC<any> = ({ navigation }) => {
             <FlatList
               data={tickets.slice(0, 3)}
               renderItem={renderTicket}
-              keyExtractor={(item) => item.id.toString()}
+              keyExtractor={(item) => item.id ? item.id.toString() : Math.random().toString()}
               scrollEnabled={false}
             />
           ) : (
@@ -252,16 +253,16 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.md,
-    gap: spacing.lg,
   },
   statsContainer: {
     flexDirection: 'row',
-    gap: spacing.sm,
+    marginBottom: spacing.lg,
   },
   statCard: {
     flex: 1,
     alignItems: 'center',
     paddingVertical: spacing.lg,
+    marginRight: spacing.sm,
   },
   statValue: {
     fontSize: typography.fontSize['2xl'],
@@ -293,13 +294,13 @@ const styles = StyleSheet.create({
   actionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.md,
   },
   actionItem: {
     flex: 1,
     minWidth: '45%',
     alignItems: 'center',
     padding: spacing.md,
+    margin: spacing.xs,
   },
   actionIcon: {
     width: 56,
@@ -344,7 +345,6 @@ const styles = StyleSheet.create({
   },
   ticketMeta: {
     alignItems: 'flex-end',
-    gap: spacing.xs,
   },
   priorityBadge: {
     paddingHorizontal: spacing.sm,
@@ -359,7 +359,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.gray[200],
     paddingTop: spacing.sm,
-    gap: spacing.xs,
   },
   ticketDate: {
     fontSize: typography.fontSize.xs,

@@ -1,5 +1,6 @@
 package com.originhubs.HRMS.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -71,6 +72,7 @@ public class Project {
     // Employee Assignment
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id")
+    @JsonIgnoreProperties({"directReports", "manager", "roles", "hibernateLazyInitializer", "handler"})
     private Employee employee;
 
     // Audit Fields
