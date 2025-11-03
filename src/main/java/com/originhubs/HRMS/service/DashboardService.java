@@ -13,6 +13,7 @@ import com.originhubs.HRMS.repository.OffboardingRepository;
 import com.originhubs.HRMS.repository.InvoiceRepository;
 import com.originhubs.HRMS.repository.TimesheetRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -43,6 +44,7 @@ public class DashboardService {
     @Autowired
     private TimesheetRepository timesheetRepository;
 
+    @Cacheable("dashboardStats")
     public Map<String, Object> getDashboardAnalytics() {
         Map<String, Object> analytics = new HashMap<>();
 
@@ -223,6 +225,7 @@ public class DashboardService {
     }
 
     // Employee-specific dashboard data
+    @Cacheable(value = "dashboardStats", key = "'employee-' + #employeeId")
     public Map<String, Object> getEmployeeDashboardData(Long employeeId) {
         Map<String, Object> employeeData = new HashMap<>();
         

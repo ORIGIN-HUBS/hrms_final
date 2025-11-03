@@ -7,6 +7,8 @@ import com.originhubs.HRMS.service.DashboardService;
 import com.originhubs.HRMS.service.EmployeeDocumentService;
 import com.originhubs.HRMS.service.EmployeeService;
 import com.originhubs.HRMS.service.UserService;
+import com.originhubs.HRMS.validation.ValidationUtils;
+import com.originhubs.HRMS.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -69,6 +71,14 @@ public class EmployeeController {
                             Authentication authentication,
                             RedirectAttributes redirectAttributes) {
         try {
+            // Validate employee data
+            ValidationUtils.validateName(employee.getFirstName(), "First name");
+            ValidationUtils.validateName(employee.getLastName(), "Last name");
+            ValidationUtils.validateEmail(employee.getWorkEmail(), "Work email");
+            ValidationUtils.validateEmail(employee.getPersonalEmail(), "Personal email");
+            ValidationUtils.validatePhone(employee.getContactNumber(), "Contact number");
+            ValidationUtils.validateJoiningDate(employee.getJoiningDate());
+            
             employee.setCreatedBy(authentication.getName());
             Employee savedEmployee = employeeService.createEmployee(employee);
             
@@ -103,7 +113,7 @@ public class EmployeeController {
     @GetMapping("/view/{id}")
     public String viewEmployee(@PathVariable Long id, Model model) {
         Employee employee = employeeService.getEmployeeById(id)
-                .orElseThrow(() -> new RuntimeException("Employee not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + id));
         List<EmployeeDocument> documents = documentService.getDocumentsByEmployeeId(id);
 
         model.addAttribute("employee", employee);
@@ -158,13 +168,18 @@ public class EmployeeController {
                                RedirectAttributes redirectAttributes) {
         try {
             Employee employee = employeeService.getEmployeeById(id)
-                    .orElseThrow(() -> new RuntimeException("Employee not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + id));
 
             // Validate file
             if (file.isEmpty()) {
                 redirectAttributes.addFlashAttribute("error", "Please select a file to upload.");
                 return "redirect:/employee/" + id + "/documents/upload";
             }
+            
+            // Validate file size and type
+            ValidationUtils.validateFileSize(file.getSize(), 10 * 1024 * 1024); // 10MB
+            ValidationUtils.validateFileType(file.getOriginalFilename(), 
+                new String[]{"pdf", "jpg", "jpeg", "png", "doc", "docx"});
 
             // Use the service method that supports more parameters
             documentService.saveEmployeeDocument(employee, file, documentType, expiryDate, documentNumber, authentication.getName());

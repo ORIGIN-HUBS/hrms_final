@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: hrms-postgres
+    environment:
+      POSTGRES_DB: hrms_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - hrms-network
+
+  hrms-app:
+    build: .
+    container_name: hrms-application
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DATABASE_URL: jdbc:postgresql://postgres:5432/hrms_db
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: postgres
+      JWT_SECRET: ${JWT_SECRET:-hrmsSecretKeyForJWTTokenGenerationAndValidation2024}
+      FILE_UPLOAD_DIR: /opt/hrms/uploads
+    ports:
+      - "8080:8080"
+    volumes:
+      - hrms_uploads:/opt/hrms/uploads
+      - hrms_logs:/var/log/hrms
+    depends_on:
+      - postgres
+    networks:
+      - hrms-network
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: hrms-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - hrms-app
+    networks:
+      - hrms-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  hrms_uploads:
+  hrms_logs:
+
+networks:
+  hrms-network:
+    driver: bridge
