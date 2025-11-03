@@ -4,14 +4,14 @@ import { Provider } from 'react-redux';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { store } from './src/store';
-import AppNavigator from './src/navigation/AppNavigator';
+import SPANavigator from './src/navigation/SPANavigator';
 
 export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <Provider store={store}>
-          <AppNavigator />
+          <SPANavigator />
           <StatusBar style="light" />
         </Provider>
       </SafeAreaProvider>

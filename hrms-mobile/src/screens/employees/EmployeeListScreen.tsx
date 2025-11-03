@@ -21,12 +21,14 @@ import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
 import { getInitials } from '@/utils/helpers';
+import { useSPANavigation } from '@/hooks/useSPANavigation';
 
-const EmployeeListScreen: React.FC<any> = ({ navigation }) => {
+const EmployeeListScreen: React.FC = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { openPanel, addEmployee } = useSPANavigation();
   
   const fetchEmployees = async () => {
     setIsLoading(true);
@@ -61,7 +63,7 @@ const EmployeeListScreen: React.FC<any> = ({ navigation }) => {
   
   const renderEmployee = ({ item }: { item: Employee }) => (
     <TouchableOpacity
-      onPress={() => navigation.navigate('EmployeeView', { employeeId: item.id })}
+      onPress={() => openPanel('EmployeeView', { employeeId: item.id })}
     >
       <Card>
         <View style={styles.employeeCard}>
@@ -105,7 +107,7 @@ const EmployeeListScreen: React.FC<any> = ({ navigation }) => {
         </View>
         <Button
           title="Add Employee"
-          onPress={() => navigation.navigate('EmployeeAdd')}
+          onPress={addEmployee}
           icon={<Ionicons name="add" size={20} color={colors.white} />}
         />
       </View>
