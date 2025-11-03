@@ -49,7 +49,8 @@ const OffboardingInitiateScreen: React.FC<any> = ({ navigation, route }) => {
       const activeEmployees = data.filter((emp) => emp.status === 'ACTIVE');
       setEmployees(activeEmployees);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to load employees');
+      const errorMessage = typeof error.message === 'string' ? error.message : 'Failed to load employees';
+      Alert.alert('Error', errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -83,7 +84,8 @@ const OffboardingInitiateScreen: React.FC<any> = ({ navigation, route }) => {
         ]
       );
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to initiate offboarding');
+      const errorMessage = typeof error.message === 'string' ? error.message : 'Failed to initiate offboarding';
+      Alert.alert('Error', errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -121,9 +123,10 @@ const OffboardingInitiateScreen: React.FC<any> = ({ navigation, route }) => {
                 >
                   <Text style={styles.selectButtonText}>
                     {values.employeeId
-                      ? employees.find((e) => e.id === values.employeeId)?.firstName +
-                        ' ' +
-                        employees.find((e) => e.id === values.employeeId)?.lastName
+                      ? (() => {
+                          const emp = employees.find((e) => e.id === values.employeeId);
+                          return emp ? `${String(emp.firstName || '').replace(/[<>"'&]/g, '')} ${String(emp.lastName || '').replace(/[<>"'&]/g, '')}` : 'Select an employee';
+                        })()
                       : 'Select an employee'}
                   </Text>
                   <Ionicons
@@ -155,10 +158,10 @@ const OffboardingInitiateScreen: React.FC<any> = ({ navigation, route }) => {
                         </View>
                         <View style={styles.employeeDetails}>
                           <Text style={styles.employeeItemName}>
-                            {employee.firstName} {employee.lastName}
+                            {String(employee.firstName || '').replace(/[<>"'&]/g, '')} {String(employee.lastName || '').replace(/[<>"'&]/g, '')}
                           </Text>
-                          <Text style={styles.employeeItemId}>{employee.employeeId}</Text>
-                          <Text style={styles.employeeItemJob}>{employee.jobTitle}</Text>
+                          <Text style={styles.employeeItemId}>{String(employee.employeeId || '').replace(/[<>"'&]/g, '')}</Text>
+                          <Text style={styles.employeeItemJob}>{String(employee.jobTitle || '').replace(/[<>"'&]/g, '')}</Text>
                         </View>
                       </TouchableOpacity>
                     ))}

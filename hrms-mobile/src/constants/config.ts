@@ -2,16 +2,16 @@ import Constants from 'expo-constants';
 
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: process.env.API_BASE_URL || 'http://192.168.1.149:8080',
-  TIMEOUT: parseInt(process.env.API_TIMEOUT || '30000', 10),
+  BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:8080',
+  TIMEOUT: parseInt(process.env.EXPO_PUBLIC_API_TIMEOUT || '30000', 10),
   ENDPOINTS: {
     // Auth
     LOGIN: '/api/auth/login',
     LOGOUT: '/api/auth/logout',
     CURRENT_USER: '/api/auth/user',
     CHANGE_PASSWORD: '/api/auth/change-password',
-    FORGOT_PASSWORD: '/auth/forgot-password',
-    RESET_PASSWORD: '/auth/reset-password',
+    FORGOT_PASSWORD: '/api/auth/forgot-password',
+    RESET_PASSWORD: '/api/auth/reset-password',
     
     // Employees
     EMPLOYEES: '/api/employees',
@@ -85,15 +85,15 @@ export const API_CONFIG = {
 
 // App Configuration
 export const APP_CONFIG = {
-  NAME: process.env.APP_NAME || 'HRMS Pro',
-  VERSION: process.env.APP_VERSION || '1.0.0',
-  SESSION_TIMEOUT: parseInt(process.env.SESSION_TIMEOUT || '3600000', 10),
+  NAME: process.env.EXPO_PUBLIC_APP_NAME || 'HRMS Pro',
+  VERSION: process.env.EXPO_PUBLIC_APP_VERSION || '1.0.0',
+  SESSION_TIMEOUT: parseInt(process.env.EXPO_PUBLIC_SESSION_TIMEOUT || '3600000', 10),
 };
 
 // File Upload Configuration
 export const FILE_CONFIG = {
-  MAX_SIZE: parseInt(process.env.MAX_FILE_SIZE || '10485760', 10), // 10MB
-  ALLOWED_TYPES: (process.env.ALLOWED_FILE_TYPES || 'pdf,doc,docx,jpg,jpeg,png').split(','),
+  MAX_SIZE: parseInt(process.env.EXPO_PUBLIC_MAX_FILE_SIZE || '10485760', 10), // 10MB
+  ALLOWED_TYPES: (process.env.EXPO_PUBLIC_ALLOWED_FILE_TYPES || 'pdf,doc,docx,jpg,jpeg,png').split(','),
 };
 
 // Storage Keys

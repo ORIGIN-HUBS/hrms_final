@@ -28,20 +28,30 @@ const LoginScreen: React.FC<any> = ({ navigation }) => {
       
       if (!result.type) {
         // If no type property, the promise resolved without error
-        console.log('Login successful, waiting for navigation');
+        if (__DEV__) {
+          console.log('Login successful, waiting for navigation');
+        }
         return;
       }
       
       if (result.type.endsWith('/rejected')) {
-        console.error('Login failed:', result.payload);
-        Alert.alert('Login Failed', result.payload as string);
+        if (__DEV__) {
+          console.error('Login failed');
+        }
+        const errorMessage = typeof result.payload === 'string' ? result.payload : 'Login failed';
+        Alert.alert('Login Failed', errorMessage);
       } else if (result.type.endsWith('/fulfilled')) {
         // Success case - AppNavigator will handle navigation
-        console.log('Login successful, authenticated state updated');
+        if (__DEV__) {
+          console.log('Login successful, authenticated state updated');
+        }
       }
     } catch (error: any) {
-      console.error('Login error:', error);
-      Alert.alert('Error', error.message || 'Login failed');
+      if (__DEV__) {
+        console.error('Login error occurred');
+      }
+      const errorMessage = typeof error.message === 'string' ? error.message : 'Login failed';
+      Alert.alert('Error', errorMessage);
     }
   };
   

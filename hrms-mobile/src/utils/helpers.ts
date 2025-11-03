@@ -5,10 +5,14 @@ import { format, parseISO, formatDistanceToNow } from 'date-fns';
  */
 export const formatDate = (date: string | Date, formatStr: string = 'MMM dd, yyyy'): string => {
   try {
+    if (!date) return '';
     const dateObj = typeof date === 'string' ? parseISO(date) : date;
+    if (isNaN(dateObj.getTime())) return '';
     return format(dateObj, formatStr);
   } catch (error) {
-    console.error('Error formatting date:', error);
+    if (__DEV__) {
+      console.error('Error formatting date');
+    }
     return '';
   }
 };
@@ -18,10 +22,14 @@ export const formatDate = (date: string | Date, formatStr: string = 'MMM dd, yyy
  */
 export const formatRelativeTime = (date: string | Date): string => {
   try {
+    if (!date) return '';
     const dateObj = typeof date === 'string' ? parseISO(date) : date;
+    if (isNaN(dateObj.getTime())) return '';
     return formatDistanceToNow(dateObj, { addSuffix: true });
   } catch (error) {
-    console.error('Error formatting relative time:', error);
+    if (__DEV__) {
+      console.error('Error formatting relative time');
+    }
     return '';
   }
 };
@@ -30,10 +38,18 @@ export const formatRelativeTime = (date: string | Date): string => {
  * Format currency
  */
 export const formatCurrency = (amount: number, currency: string = 'USD'): string => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-  }).format(amount);
+  try {
+    if (typeof amount !== 'number' || isNaN(amount)) return '$0.00';
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency,
+    }).format(amount);
+  } catch (error) {
+    if (__DEV__) {
+      console.error('Error formatting currency');
+    }
+    return '$0.00';
+  }
 };
 
 /**
@@ -47,7 +63,12 @@ export const formatNumber = (num: number, decimals: number = 2): string => {
  * Get initials from name
  */
 export const getInitials = (name: string): string => {
-  const parts = name.trim().split(' ');
+  if (!name || typeof name !== 'string') return '??';
+  
+  const sanitizedName = name.replace(/[<>"'&]/g, '').trim();
+  const parts = sanitizedName.split(' ').filter(part => part.length > 0);
+  
+  if (parts.length === 0) return '??';
   if (parts.length === 1) {
     return parts[0].charAt(0).toUpperCase();
   }
@@ -100,8 +121,12 @@ export const getStatusBadgeStyle = (status: string) => {
  * Truncate text
  */
 export const truncateText = (text: string, maxLength: number): string => {
-  if (text.length <= maxLength) return text;
-  return text.substring(0, maxLength) + '...';
+  if (!text || typeof text !== 'string') return '';
+  if (maxLength <= 0) return '';
+  
+  const sanitizedText = text.replace(/[<>"'&]/g, '');
+  if (sanitizedText.length <= maxLength) return sanitizedText;
+  return sanitizedText.substring(0, maxLength) + '...';
 };
 
 /**
@@ -175,6 +200,14 @@ export const debounce = <T extends (...args: any[]) => any>(
  * Deep clone object
  */
 export const deepClone = <T>(obj: T): T => {
-  return JSON.parse(JSON.stringify(obj));
+  try {
+    if (obj === null || typeof obj !== 'object') return obj;
+    return JSON.parse(JSON.stringify(obj));
+  } catch (error) {
+    if (__DEV__) {
+      console.error('Error cloning object');
+    }
+    return obj;
+  }
 };
 

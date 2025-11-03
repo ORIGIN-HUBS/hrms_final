@@ -56,7 +56,8 @@ const EmployeeViewScreen: React.FC<any> = ({ navigation, route }) => {
               Alert.alert('Success', 'User account created successfully');
               fetchEmployee();
             } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to create user account');
+              const errorMessage = typeof error.message === 'string' ? error.message : 'Failed to create user account';
+              Alert.alert('Error', errorMessage);
             } finally {
               setIsCreatingAccount(false);
             }

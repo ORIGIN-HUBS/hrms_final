@@ -10,6 +10,10 @@ interface StatusBadgeProps {
 }
 
 const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'medium' }) => {
+  if (!status || typeof status !== 'string') {
+    return null;
+  }
+  
   const color = getStatusColor(status);
   
   const getSizeStyles = () => {
@@ -38,7 +42,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'medium' }) =>
       ]}
     >
       <Text style={[styles.text, { color, fontSize: sizeStyles.fontSize }]}>
-        {status.replace(/_/g, ' ')}
+        {status.replace(/_/g, ' ').replace(/[<>"'&]/g, '')}
       </Text>
     </View>
   );

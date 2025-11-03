@@ -1,6 +1,7 @@
 import { apiClient } from './api';
 import { API_CONFIG } from '@/constants/config';
 import { Project } from '@/types';
+import { sanitizeLogMessage } from '@/utils/security';
 
 export const projectService = {
   /**
@@ -14,7 +15,9 @@ export const projectService = {
       const response = await apiClient.get<Project[]>(url);
       return response.data || [];
     } catch (error: any) {
-      console.warn('Projects API error:', error.response?.data?.message || error.message);
+      if (__DEV__) {
+        console.warn('Projects API error:', sanitizeLogMessage(error.response?.data?.message || error.message));
+      }
       if (error.response?.status === 500) {
         // Return empty array for server errors to prevent app crash
         return [];
@@ -47,7 +50,9 @@ export const projectService = {
       );
       return response.data || [];
     } catch (error: any) {
-      console.warn('Employee projects API error:', error.response?.data?.message || error.message);
+      if (__DEV__) {
+        console.warn('Employee projects API error:', sanitizeLogMessage(error.response?.data?.message || error.message));
+      }
       if (error.response?.status === 500) {
         // Return empty array for server errors to prevent app crash
         return [];

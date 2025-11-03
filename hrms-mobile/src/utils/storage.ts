@@ -62,7 +62,14 @@ export const getStoredSession = async (): Promise<SessionData | null> => {
       return null;
     }
     
-    const user = JSON.parse(userDataStr) as UserInfo;
+    let user: UserInfo;
+    try {
+      user = JSON.parse(userDataStr) as UserInfo;
+    } catch (parseError) {
+      console.error('Error parsing user data:', parseError);
+      await clearStoredSession();
+      return null;
+    }
     
     return {
       user,

@@ -1,6 +1,7 @@
 import { apiClient } from './api';
 import { API_CONFIG } from '@/constants/config';
 import { Offboarding } from '@/types';
+import { sanitizeErrorMessage } from '@/utils/security';
 
 export const offboardingService = {
   /**
@@ -9,9 +10,12 @@ export const offboardingService = {
   getAllOffboardings: async (): Promise<Offboarding[]> => {
     try {
       const response = await apiClient.get<Offboarding[]>(API_CONFIG.ENDPOINTS.OFFBOARDINGS);
-      return response.data;
+      return response.data || [];
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to fetch offboarding records');
+      if (__DEV__) {
+        console.error('Failed to fetch offboarding records');
+      }
+      throw new Error(sanitizeErrorMessage(error.response?.data?.message || 'Failed to fetch offboarding records'));
     }
   },
 
@@ -25,7 +29,10 @@ export const offboardingService = {
       );
       return response.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to fetch offboarding record');
+      if (__DEV__) {
+        console.error('Failed to fetch offboarding record');
+      }
+      throw new Error(sanitizeErrorMessage(error.response?.data?.message || 'Failed to fetch offboarding record'));
     }
   },
 
@@ -39,7 +46,10 @@ export const offboardingService = {
       );
       return response.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to fetch employee offboarding');
+      if (__DEV__) {
+        console.error('Failed to fetch employee offboarding');
+      }
+      throw new Error(sanitizeErrorMessage(error.response?.data?.message || 'Failed to fetch employee offboarding'));
     }
   },
 
@@ -54,7 +64,10 @@ export const offboardingService = {
       );
       return response.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to initiate offboarding');
+      if (__DEV__) {
+        console.error('Failed to initiate offboarding');
+      }
+      throw new Error(sanitizeErrorMessage(error.response?.data?.message || 'Failed to initiate offboarding'));
     }
   },
 
@@ -69,7 +82,10 @@ export const offboardingService = {
       );
       return response.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to update offboarding');
+      if (__DEV__) {
+        console.error('Failed to update offboarding');
+      }
+      throw new Error(sanitizeErrorMessage(error.response?.data?.message || 'Failed to update offboarding'));
     }
   },
 
@@ -84,7 +100,10 @@ export const offboardingService = {
       );
       return response.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to revoke access');
+      if (__DEV__) {
+        console.error('Failed to revoke access');
+      }
+      throw new Error(sanitizeErrorMessage(error.response?.data?.message || 'Failed to revoke access'));
     }
   },
 
@@ -98,7 +117,10 @@ export const offboardingService = {
       );
       return response.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to generate relieving letter');
+      if (__DEV__) {
+        console.error('Failed to generate relieving letter');
+      }
+      throw new Error(sanitizeErrorMessage(error.response?.data?.message || 'Failed to generate relieving letter'));
     }
   },
 
@@ -112,7 +134,10 @@ export const offboardingService = {
       );
       return response.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to generate experience certificate');
+      if (__DEV__) {
+        console.error('Failed to generate experience certificate');
+      }
+      throw new Error(sanitizeErrorMessage(error.response?.data?.message || 'Failed to generate experience certificate'));
     }
   },
 
@@ -126,7 +151,10 @@ export const offboardingService = {
       );
       return response.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to complete offboarding');
+      if (__DEV__) {
+        console.error('Failed to complete offboarding');
+      }
+      throw new Error(sanitizeErrorMessage(error.response?.data?.message || 'Failed to complete offboarding'));
     }
   },
 
@@ -137,7 +165,10 @@ export const offboardingService = {
     try {
       await apiClient.delete(API_CONFIG.ENDPOINTS.OFFBOARDING_BY_ID(id));
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to delete offboarding record');
+      if (__DEV__) {
+        console.error('Failed to delete offboarding record');
+      }
+      throw new Error(sanitizeErrorMessage(error.response?.data?.message || 'Failed to delete offboarding record'));
     }
   },
 };

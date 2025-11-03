@@ -52,7 +52,8 @@ const TimesheetFormScreen: React.FC<any> = ({ navigation, route }) => {
         initializeEntries(data.weekStartDate);
       }
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to load timesheet');
+      const errorMessage = typeof error.message === 'string' ? error.message : 'Failed to load timesheet';
+      Alert.alert('Error', errorMessage);
       navigation.goBack();
     } finally {
       setIsLoading(false);
@@ -108,11 +109,25 @@ const TimesheetFormScreen: React.FC<any> = ({ navigation, route }) => {
     setEntries(newEntries);
   };
 
+  const sanitizeInput = (input: string): string => {
+    return input.replace(/[<>"'&]/g, (match) => {
+      const entities: { [key: string]: string } = {
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#x27;',
+        '&': '&amp;'
+      };
+      return entities[match] || match;
+    });
+  };
+
   const handleNotesChange = (index: number, value: string) => {
+    const sanitizedValue = sanitizeInput(value);
     const newEntries = [...entries];
     newEntries[index] = {
       ...newEntries[index],
-      notes: value,
+      notes: sanitizedValue,
     };
     setEntries(newEntries);
   };
@@ -152,7 +167,8 @@ const TimesheetFormScreen: React.FC<any> = ({ navigation, route }) => {
         ]);
       }
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to save timesheet');
+      const errorMessage = typeof error.message === 'string' ? error.message : 'Failed to save timesheet';
+      Alert.alert('Error', errorMessage);
     } finally {
       setIsSaving(false);
     }
@@ -182,7 +198,8 @@ const TimesheetFormScreen: React.FC<any> = ({ navigation, route }) => {
                 ]);
               }
             } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to submit timesheet');
+              const errorMessage = typeof error.message === 'string' ? error.message : 'Failed to submit timesheet';
+              Alert.alert('Error', errorMessage);
             }
           },
         },

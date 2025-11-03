@@ -25,16 +25,17 @@ export const authService = {
           sessionId: response.data.sessionId,
         });
         
-        // Log success for debugging
-        console.log('Login successful, session stored:', {
-          user: response.data.user,
-          sessionId: response.data.sessionId
-        });
+        // Log success for debugging (sanitized)
+        if (__DEV__) {
+          console.log('Login successful for user:', response.data.user?.username || 'unknown');
+        }
       }
       
       return response.data;
     } catch (error: any) {
-      console.error('Login error:', error);
+      if (__DEV__) {
+        console.error('Login error:', error.message || 'Unknown error');
+      }
       throw new Error(error.response?.data?.message || error.message || 'Login failed');
     }
   },
@@ -59,8 +60,13 @@ export const authService = {
     try {
       const response = await apiClient.get<UserInfo>(API_CONFIG.ENDPOINTS.CURRENT_USER);
       return response.data;
-    } catch (error) {
-      console.error('Get current user error:', error);
+    } catch (error: any) {
+      if (__DEV__) {
+        console.error('Get current user error:', error.message || 'Unknown error');
+      }
+      if (error.response?.status === 401) {
+        await clearStoredSession();
+      }
       return null;
     }
   },
