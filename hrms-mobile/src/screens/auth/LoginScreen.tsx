@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -21,15 +21,26 @@ import { typography } from '@/theme/typography';
 
 const LoginScreen: React.FC<any> = ({ navigation }) => {
   const { login, isLoading } = useAuth();
-  const [rememberMe, setRememberMe] = useState(false);
   
   const handleLogin = async (values: { username: string; password: string }) => {
     try {
       const result = await login(values);
-      if (result.type === 'auth/login/rejected') {
+      
+      if (!result.type) {
+        // If no type property, the promise resolved without error
+        console.log('Login successful, waiting for navigation');
+        return;
+      }
+      
+      if (result.type.endsWith('/rejected')) {
+        console.error('Login failed:', result.payload);
         Alert.alert('Login Failed', result.payload as string);
+      } else if (result.type.endsWith('/fulfilled')) {
+        // Success case - AppNavigator will handle navigation
+        console.log('Login successful, authenticated state updated');
       }
     } catch (error: any) {
+      console.error('Login error:', error);
       Alert.alert('Error', error.message || 'Login failed');
     }
   };

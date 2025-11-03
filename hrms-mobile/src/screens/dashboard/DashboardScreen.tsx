@@ -36,8 +36,21 @@ const DashboardScreen: React.FC<any> = ({ navigation }) => {
     try {
       const response = await apiClient.get(API_CONFIG.ENDPOINTS.DASHBOARD_ANALYTICS);
       setStats(response.data || {});
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching dashboard data:', error);
+      // Provide fallback data when backend is unavailable
+      if (error.response?.status === 401 || error.code === 'ERR_NETWORK') {
+        setStats({
+          totalEmployees: 0,
+          activeEmployees: 0,
+          onboardingEmployees: 0,
+          offboardingEmployees: 0,
+          totalProjects: 0,
+          activeProjects: 0,
+          pendingTimesheets: 0,
+          pendingApprovals: 0,
+        });
+      }
     } finally {
       setIsLoading(false);
     }

@@ -12,8 +12,13 @@ export const projectService = {
         ? `${API_CONFIG.ENDPOINTS.PROJECTS}?search=${encodeURIComponent(searchQuery)}`
         : API_CONFIG.ENDPOINTS.PROJECTS;
       const response = await apiClient.get<Project[]>(url);
-      return response.data;
+      return response.data || [];
     } catch (error: any) {
+      console.warn('Projects API error:', error.response?.data?.message || error.message);
+      if (error.response?.status === 500) {
+        // Return empty array for server errors to prevent app crash
+        return [];
+      }
       throw new Error(error.response?.data?.message || 'Failed to fetch projects');
     }
   },
@@ -40,8 +45,13 @@ export const projectService = {
       const response = await apiClient.get<Project[]>(
         API_CONFIG.ENDPOINTS.PROJECTS_BY_EMPLOYEE(employeeId)
       );
-      return response.data;
+      return response.data || [];
     } catch (error: any) {
+      console.warn('Employee projects API error:', error.response?.data?.message || error.message);
+      if (error.response?.status === 500) {
+        // Return empty array for server errors to prevent app crash
+        return [];
+      }
       throw new Error(error.response?.data?.message || 'Failed to fetch employee projects');
     }
   },

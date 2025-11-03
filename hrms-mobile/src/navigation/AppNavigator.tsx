@@ -12,7 +12,16 @@ const AppNavigator: React.FC = () => {
   const { isAuthenticated, isLoading, checkAuth } = useAuth();
   
   useEffect(() => {
-    checkAuth();
+    const checkAuthStatus = async () => {
+      try {
+        await checkAuth();
+        console.log('Auth check completed, isAuthenticated:', isAuthenticated);
+      } catch (error) {
+        console.error('Authentication check failed:', error);
+      }
+    };
+    
+    checkAuthStatus();
   }, []);
   
   if (isLoading) {

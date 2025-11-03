@@ -12,6 +12,11 @@ const api: AxiosInstance = axios.create({
   withCredentials: true, // Important for session-based auth
 });
 
+// Set default axios config for web
+if (typeof window !== 'undefined') {
+  axios.defaults.withCredentials = true;
+}
+
 // Request interceptor
 api.interceptors.request.use(
   async (config) => {

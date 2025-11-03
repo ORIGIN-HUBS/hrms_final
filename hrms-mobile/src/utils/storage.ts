@@ -1,4 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 import { STORAGE_KEYS } from '@/constants/config';
 import { UserInfo } from '@/types';
 
@@ -7,14 +8,41 @@ interface SessionData {
   sessionId?: string;
 }
 
+// Platform-specific storage implementation
+const storage = {
+  setItem: async (key: string, value: string): Promise<void> => {
+    if (Platform.OS === 'web') {
+      localStorage.setItem(key, value);
+    } else {
+      await SecureStore.setItemAsync(key, value);
+    }
+  },
+  
+  getItem: async (key: string): Promise<string | null> => {
+    if (Platform.OS === 'web') {
+      return localStorage.getItem(key);
+    } else {
+      return await SecureStore.getItemAsync(key);
+    }
+  },
+  
+  removeItem: async (key: string): Promise<void> => {
+    if (Platform.OS === 'web') {
+      localStorage.removeItem(key);
+    } else {
+      await SecureStore.deleteItemAsync(key);
+    }
+  },
+};
+
 /**
  * Store session data securely
  */
 export const storeSession = async (session: SessionData): Promise<void> => {
   try {
-    await SecureStore.setItemAsync(STORAGE_KEYS.USER_DATA, JSON.stringify(session.user));
+    await storage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(session.user));
     if (session.sessionId) {
-      await SecureStore.setItemAsync(STORAGE_KEYS.SESSION_ID, session.sessionId);
+      await storage.setItem(STORAGE_KEYS.SESSION_ID, session.sessionId);
     }
   } catch (error) {
     console.error('Error storing session:', error);
@@ -27,8 +55,8 @@ export const storeSession = async (session: SessionData): Promise<void> => {
  */
 export const getStoredSession = async (): Promise<SessionData | null> => {
   try {
-    const userDataStr = await SecureStore.getItemAsync(STORAGE_KEYS.USER_DATA);
-    const sessionId = await SecureStore.getItemAsync(STORAGE_KEYS.SESSION_ID);
+    const userDataStr = await storage.getItem(STORAGE_KEYS.USER_DATA);
+    const sessionId = await storage.getItem(STORAGE_KEYS.SESSION_ID);
     
     if (!userDataStr) {
       return null;
@@ -51,9 +79,9 @@ export const getStoredSession = async (): Promise<SessionData | null> => {
  */
 export const clearStoredSession = async (): Promise<void> => {
   try {
-    await SecureStore.deleteItemAsync(STORAGE_KEYS.USER_DATA);
-    await SecureStore.deleteItemAsync(STORAGE_KEYS.SESSION_ID);
-    await SecureStore.deleteItemAsync(STORAGE_KEYS.AUTH_TOKEN);
+    await storage.removeItem(STORAGE_KEYS.USER_DATA);
+    await storage.removeItem(STORAGE_KEYS.SESSION_ID);
+    await storage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
   } catch (error) {
     console.error('Error clearing session:', error);
   }
@@ -64,7 +92,7 @@ export const clearStoredSession = async (): Promise<void> => {
  */
 export const storeAuthToken = async (token: string): Promise<void> => {
   try {
-    await SecureStore.setItemAsync(STORAGE_KEYS.AUTH_TOKEN, token);
+    await storage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
   } catch (error) {
     console.error('Error storing auth token:', error);
     throw error;
@@ -76,7 +104,7 @@ export const storeAuthToken = async (token: string): Promise<void> => {
  */
 export const getAuthToken = async (): Promise<string | null> => {
   try {
-    return await SecureStore.getItemAsync(STORAGE_KEYS.AUTH_TOKEN);
+    return await storage.getItem(STORAGE_KEYS.AUTH_TOKEN);
   } catch (error) {
     console.error('Error getting auth token:', error);
     return null;
@@ -88,7 +116,7 @@ export const getAuthToken = async (): Promise<string | null> => {
  */
 export const storeRememberMe = async (remember: boolean): Promise<void> => {
   try {
-    await SecureStore.setItemAsync(STORAGE_KEYS.REMEMBER_ME, remember.toString());
+    await storage.setItem(STORAGE_KEYS.REMEMBER_ME, remember.toString());
   } catch (error) {
     console.error('Error storing remember me:', error);
   }
@@ -99,11 +127,10 @@ export const storeRememberMe = async (remember: boolean): Promise<void> => {
  */
 export const getRememberMe = async (): Promise<boolean> => {
   try {
-    const value = await SecureStore.getItemAsync(STORAGE_KEYS.REMEMBER_ME);
+    const value = await storage.getItem(STORAGE_KEYS.REMEMBER_ME);
     return value === 'true';
   } catch (error) {
     console.error('Error getting remember me:', error);
     return false;
   }
 };
-

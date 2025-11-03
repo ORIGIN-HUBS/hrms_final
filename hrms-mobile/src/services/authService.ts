@@ -14,17 +14,28 @@ export const authService = {
         credentials
       );
       
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Login failed');
+      }
+      
       // Store session data if login successful
-      if (response.data.success && response.data.user) {
+      if (response.data.user) {
         await storeSession({
           user: response.data.user,
           sessionId: response.data.sessionId,
+        });
+        
+        // Log success for debugging
+        console.log('Login successful, session stored:', {
+          user: response.data.user,
+          sessionId: response.data.sessionId
         });
       }
       
       return response.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Login failed');
+      console.error('Login error:', error);
+      throw new Error(error.response?.data?.message || error.message || 'Login failed');
     }
   },
   

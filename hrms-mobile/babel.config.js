@@ -6,7 +6,6 @@ module.exports = function(api) {
       '@babel/plugin-transform-template-literals',
       '@babel/plugin-transform-modules-commonjs',
       ['@babel/plugin-transform-runtime', { helpers: true }],
-      'react-native-reanimated/plugin',
       [
         'module-resolver',
         {
@@ -27,6 +26,7 @@ module.exports = function(api) {
           },
         },
       ],
+      'react-native-reanimated/plugin', // Must be last
     ],
   };
 };

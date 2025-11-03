@@ -2,7 +2,7 @@ import Constants from 'expo-constants';
 
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: process.env.API_BASE_URL || 'http://localhost:8080',
+  BASE_URL: process.env.API_BASE_URL || 'http://192.168.1.149:8080',
   TIMEOUT: parseInt(process.env.API_TIMEOUT || '30000', 10),
   ENDPOINTS: {
     // Auth
