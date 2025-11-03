@@ -1,16 +1,15 @@
 package com.originhubs.HRMS.config;
 
-import com.originhubs.HRMS.security.CustomAuthenticationSuccessHandler;
 import com.originhubs.HRMS.security.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -24,14 +23,11 @@ import org.springframework.security.web.header.HeaderWriterFilter;
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
-    private final CustomAuthenticationSuccessHandler authenticationSuccessHandler;
     private final OncePerRequestFilter securityHeadersFilter;
     
-    public SecurityConfig(CustomUserDetailsService userDetailsService, 
-                         @Lazy CustomAuthenticationSuccessHandler authenticationSuccessHandler,
+    public SecurityConfig(CustomUserDetailsService userDetailsService,
                          OncePerRequestFilter securityHeadersFilter) {
         this.userDetailsService = userDetailsService;
-        this.authenticationSuccessHandler = authenticationSuccessHandler;
         this.securityHeadersFilter = securityHeadersFilter;
     }
 
@@ -67,47 +63,17 @@ public class SecurityConfig {
                     .includeSubdomains(true)
                 )
             )
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/login", "/css/**", "/js/**", "/images/**").permitAll()
-                .requestMatchers("/auth/**").permitAll()
-                // API endpoints - keep for potential future use
+                // API endpoints for mobile app
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/hr/**").hasAnyRole("ADMIN", "HR")
                 .requestMatchers("/api/employee/**").hasAnyRole("ADMIN", "HR", "EMPLOYEE")
                 .requestMatchers("/api/**").hasAnyRole("ADMIN", "HR", "EMPLOYEE")
-                // HTML page routes
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/hr/**").hasAnyRole("ADMIN", "HR")
-                .requestMatchers("/employee/**").hasAnyRole("ADMIN", "HR", "EMPLOYEE")
-                // Self-service portal routes
-                .requestMatchers("/self-service/admin/**").hasAnyRole("ADMIN", "HR")
-                .requestMatchers("/self-service/**").hasAnyRole("ADMIN", "HR", "EMPLOYEE")
+                // Health check and documentation
+                .requestMatchers("/actuator/health", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .anyRequest().authenticated()
-            )
-            .formLogin(form -> form
-                .loginPage("/login")
-                .loginProcessingUrl("/login")
-                .successHandler(authenticationSuccessHandler)
-                .failureUrl("/login?error=true")
-                .permitAll()
-            )
-            .logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/login?logout=true")
-                .invalidateHttpSession(true)
-                .deleteCookies("JSESSIONID")
-                .permitAll()
-            )
-            .exceptionHandling(ex -> ex
-                .accessDeniedPage("/access-denied")
-            )
-            .sessionManagement(session -> session
-                .maximumSessions(1)
-                .maxSessionsPreventsLogin(false)
-                .and()
-                .sessionFixation().migrateSession()
-                .invalidSessionUrl("/login?expired=true")
             );
 
         return http.build();
