@@ -108,6 +108,7 @@ const Button: React.FC<ButtonProps> = ({
     <TouchableOpacity
       style={[
         styles.button,
+        styles.solidButton,
         getSizeStyles(),
         fullWidth && styles.fullWidth,
         disabled && styles.disabled,
@@ -117,23 +118,16 @@ const Button: React.FC<ButtonProps> = ({
       disabled={disabled || loading}
       activeOpacity={0.8}
     >
-      <LinearGradient
-        colors={getGradientColors()}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.gradient, borderRadius.md ? { borderRadius: borderRadius.md } : undefined]}
-      >
-        {loading ? (
-          <ActivityIndicator color={colors.white} />
-        ) : (
-          <>
-            {icon}
-            <Text style={[styles.text, { fontSize: getTextSize() }, textStyle]}>
-              {title}
-            </Text>
-          </>
-        )}
-      </LinearGradient>
+      {loading ? (
+        <ActivityIndicator color={colors.white} />
+      ) : (
+        <>
+          {icon}
+          <Text style={[styles.text, { fontSize: getTextSize() }, textStyle]}>
+            {title}
+          </Text>
+        </>
+      )}
     </TouchableOpacity>
   );
 };
@@ -143,7 +137,8 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     overflow: 'hidden',
   },
-  gradient: {
+  solidButton: {
+    backgroundColor: colors.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
