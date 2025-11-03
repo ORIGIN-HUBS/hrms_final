@@ -33,7 +33,7 @@ public class EmployeeApiController {
     private final PasswordEncoder passwordEncoder;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
+    // @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
     public ResponseEntity<List<EmployeeResponse>> getAllEmployees() {
         List<Employee> employees = employeeService.getAllEmployees();
         List<EmployeeResponse> response = employees.stream()
@@ -43,7 +43,7 @@ public class EmployeeApiController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
+    // @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
     public ResponseEntity<EmployeeResponse> getEmployee(@PathVariable Long id) {
         Optional<Employee> employeeOpt = employeeService.getEmployeeById(id);
         if (employeeOpt.isEmpty()) {
@@ -53,7 +53,7 @@ public class EmployeeApiController {
     }
 
     @GetMapping("/by-email/{email}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'HR', 'EMPLOYEE')")
+    // @PreAuthorize("hasAnyRole('ADMIN', 'HR', 'EMPLOYEE')")
     public ResponseEntity<EmployeeResponse> getEmployeeByEmail(@PathVariable String email) {
         Optional<Employee> employeeOpt = employeeService.findByWorkEmail(email);
         if (employeeOpt.isEmpty()) {
@@ -63,7 +63,7 @@ public class EmployeeApiController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
+    // @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
     public ResponseEntity<?> createEmployee(@RequestBody EmployeeCreateRequest request) {
         try {
             System.out.println("Received employee data: " + request.toString());

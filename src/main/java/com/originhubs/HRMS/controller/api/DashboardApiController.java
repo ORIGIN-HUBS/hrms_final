@@ -11,7 +11,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/dashboard")
 @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
-@PreAuthorize("hasAnyRole('ADMIN', 'HR', 'EMPLOYEE')")
+// @PreAuthorize("hasAnyRole('ADMIN', 'HR', 'EMPLOYEE')")
 public class DashboardApiController {
 
     @Autowired
