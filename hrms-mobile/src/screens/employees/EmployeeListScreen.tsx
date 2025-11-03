@@ -16,6 +16,7 @@ import { Employee } from '@/types';
 import Card from '@/components/common/Card';
 import StatusBadge from '@/components/common/StatusBadge';
 import Button from '@/components/common/Button';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
@@ -85,6 +86,10 @@ const EmployeeListScreen: React.FC<any> = ({ navigation }) => {
     </TouchableOpacity>
   );
   
+  if (isLoading && employees.length === 0) {
+    return <LoadingSpinner />;
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>

@@ -14,6 +14,7 @@ import { notificationService } from '@/services/notificationService';
 import { Notification } from '@/types';
 import Card from '@/components/common/Card';
 import Button from '@/components/common/Button';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
@@ -171,6 +172,10 @@ const NotificationListScreen: React.FC<any> = ({ navigation }) => {
       </Card>
     </TouchableOpacity>
   );
+
+  if (isLoading && notifications.length === 0) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <View style={styles.container}>

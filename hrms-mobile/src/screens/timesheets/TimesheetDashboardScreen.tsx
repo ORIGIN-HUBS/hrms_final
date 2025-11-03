@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LineChart, BarChart } from 'react-native-chart-kit';
 import { timesheetService } from '@/services/timesheetService';
 import Card from '@/components/common/Card';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
@@ -74,6 +75,10 @@ const TimesheetDashboardScreen: React.FC<any> = ({ navigation }) => {
       },
     ],
   };
+
+  if (isLoading && !summary) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <ScrollView

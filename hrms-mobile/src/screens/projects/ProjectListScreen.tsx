@@ -14,6 +14,7 @@ import { projectService } from '@/services/projectService';
 import Card from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import StatusBadge from '@/components/common/StatusBadge';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
@@ -131,6 +132,10 @@ const ProjectListScreen: React.FC<any> = ({ navigation }) => {
       </Text>
     </View>
   );
+
+  if (isLoading && projects.length === 0) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <View style={styles.container}>

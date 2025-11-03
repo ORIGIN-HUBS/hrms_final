@@ -12,6 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { apiClient } from '@/services/api';
 import { API_CONFIG } from '@/constants/config';
 import Card from '@/components/common/Card';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { colors, gradients } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
@@ -89,6 +90,10 @@ const DashboardScreen: React.FC<any> = ({ navigation }) => {
     </TouchableOpacity>
   );
   
+  if (isLoading && Object.keys(stats).length === 0) {
+    return <LoadingSpinner />;
+  }
+
   return (
     <ScrollView
       style={styles.container}

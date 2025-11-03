@@ -14,6 +14,7 @@ import { timesheetService } from '@/services/timesheetService';
 import Card from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import StatusBadge from '@/components/common/StatusBadge';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
@@ -157,6 +158,10 @@ const TimesheetListScreen: React.FC<any> = ({ navigation }) => {
       ))}
     </View>
   );
+
+  if (isLoading && timesheets.length === 0) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <View style={styles.container}>

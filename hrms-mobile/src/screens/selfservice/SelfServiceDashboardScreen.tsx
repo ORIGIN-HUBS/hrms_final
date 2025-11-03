@@ -18,6 +18,7 @@ import { RootState } from '@/store';
 import Card from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import StatusBadge from '@/components/common/StatusBadge';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
@@ -145,6 +146,10 @@ const SelfServiceDashboardScreen: React.FC<any> = ({ navigation }) => {
     },
   ];
   
+  if (isLoading && tickets.length === 0) {
+    return <LoadingSpinner />;
+  }
+
   return (
     <ScrollView
       style={styles.container}
