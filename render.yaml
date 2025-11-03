@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: hrms
+    env: docker
+    plan: free
+    healthCheckPath: /actuator/health
