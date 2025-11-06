@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "HRMS Pro",
+    "slug": "hrms-mobile",
+    "version": "1.0.0",
+    "sdkVersion": "54.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.originhubs.hrms"
+    },
+    "android": {
+      "package": "com.originhubs.hrms",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-document-picker",
+      "expo-image-picker"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "hrms-mobile-app"
+      }
+    }
+  }
+}
+
