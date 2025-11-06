@@ -1,0 +1,66 @@
+import { MD3LightTheme } from 'react-native-paper';
+
+export const theme = {
+  ...MD3LightTheme,
+  colors: {
+    ...MD3LightTheme.colors,
+    primary: '#667eea',
+    secondary: '#764ba2',
+    success: '#28a745',
+    warning: '#ffc107',
+    error: '#dc3545',
+    info: '#17a2b8',
+    background: '#f8fafc',
+    surface: '#ffffff',
+    text: '#2d3748',
+    onSurface: '#718096',
+    outline: '#e2e8f0',
+    surfaceVariant: '#f7fafc',
+    primaryContainer: '#e6f3ff',
+    tertiaryContainer: '#fff3cd',
+  },
+  gradients: {
+    primary: ['#667eea', '#764ba2'],
+    secondary: ['#f093fb', '#f5576c'],
+    success: ['#4facfe', '#00f2fe'],
+    warning: ['#43e97b', '#38f9d7'],
+    danger: ['#fa709a', '#fee140'],
+  },
+  spacing: {
+    xs: 4,
+    sm: 8,
+    md: 16,
+    lg: 24,
+    xl: 32,
+    xxl: 48,
+  },
+  borderRadius: {
+    sm: 4,
+    md: 8,
+    lg: 12,
+    xl: 20,
+  },
+  shadows: {
+    sm: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      elevation: 2,
+    },
+    md: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 4,
+    },
+    lg: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 8,
+    },
+  },
+};
