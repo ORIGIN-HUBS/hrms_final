@@ -4,6 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Screen } from '../../components/layout/Screen';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
+import { DatePicker } from '../../components/common/DatePicker';
 import { employeeService } from '../../api/employeeService';
 import { colors } from '../../constants/colors';
 import { useAuth } from '../../contexts/AuthContext';
@@ -273,7 +274,7 @@ export const AddEmployeeScreen: React.FC<AddEmployeeScreenProps> = ({ onNavigate
                   <View style={styles.row}>
                     <View style={styles.col4}>
                       <Input
-                        label="First Name"
+                        label="First Name *"
                         value={formData.firstName}
                         onChangeText={(value) => updateField('firstName', value)}
                         error={errors.firstName}
@@ -289,7 +290,7 @@ export const AddEmployeeScreen: React.FC<AddEmployeeScreenProps> = ({ onNavigate
                     </View>
                     <View style={styles.col4}>
                       <Input
-                        label="Last Name"
+                        label="Last Name *"
                         value={formData.lastName}
                         onChangeText={(value) => updateField('lastName', value)}
                         error={errors.lastName}
@@ -299,11 +300,13 @@ export const AddEmployeeScreen: React.FC<AddEmployeeScreenProps> = ({ onNavigate
                   </View>
                   <View style={styles.row}>
                     <View style={styles.col4}>
-                      <Input
+                      <DatePicker
                         label="Date of Birth"
                         value={formData.dateOfBirth}
-                        onChangeText={(value) => updateField('dateOfBirth', value)}
-                        placeholder="YYYY-MM-DD"
+                        onChangeDate={(value) => updateField('dateOfBirth', value)}
+                        error={errors.dateOfBirth}
+                        placeholder="Select date of birth"
+                        maximumDate={new Date()}
                       />
                     </View>
                     <View style={styles.col4}>
@@ -332,7 +335,7 @@ export const AddEmployeeScreen: React.FC<AddEmployeeScreenProps> = ({ onNavigate
                   <View style={styles.row}>
                     <View style={styles.col6}>
                       <Input
-                        label="Contact Number"
+                        label="Contact Number *"
                         value={formData.contactNumber}
                         onChangeText={(value) => updateField('contactNumber', value)}
                         error={errors.contactNumber}
@@ -352,7 +355,7 @@ export const AddEmployeeScreen: React.FC<AddEmployeeScreenProps> = ({ onNavigate
                   <View style={styles.row}>
                     <View style={styles.col12}>
                       <Input
-                        label="Personal Email"
+                        label="Personal Email *"
                         value={formData.personalEmail}
                         onChangeText={(value) => updateField('personalEmail', value)}
                         error={errors.personalEmail}
@@ -432,7 +435,7 @@ export const AddEmployeeScreen: React.FC<AddEmployeeScreenProps> = ({ onNavigate
                   <View style={styles.row}>
                     <View style={styles.col6}>
                       <Input
-                        label="Job Title"
+                        label="Job Title *"
                         value={formData.jobTitle}
                         onChangeText={(value) => updateField('jobTitle', value)}
                         error={errors.jobTitle}
@@ -449,7 +452,7 @@ export const AddEmployeeScreen: React.FC<AddEmployeeScreenProps> = ({ onNavigate
                   </View>
                   <View style={styles.row}>
                     <View style={styles.col4}>
-                      {renderSelectField('Employment Type', 'employmentType', [
+                      {renderSelectField('Employment Type *', 'employmentType', [
                         { label: 'Select...', value: '' },
                         { label: 'Full-time', value: 'Full-time' },
                         { label: 'Part-time', value: 'Part-time' },
@@ -474,13 +477,12 @@ export const AddEmployeeScreen: React.FC<AddEmployeeScreenProps> = ({ onNavigate
                   </View>
                   <View style={styles.row}>
                     <View style={styles.col6}>
-                      <Input
-                        label="Joining Date"
+                      <DatePicker
+                        label="Joining Date *"
                         value={formData.joiningDate}
-                        onChangeText={(value) => updateField('joiningDate', value)}
+                        onChangeDate={(value) => updateField('joiningDate', value)}
                         error={errors.joiningDate}
-                        placeholder="YYYY-MM-DD"
-                        required
+                        placeholder="Select joining date"
                       />
                     </View>
                     <View style={styles.col6}>

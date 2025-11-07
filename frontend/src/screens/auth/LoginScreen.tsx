@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, Alert, Image, TouchableOpacity } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Screen } from '../../components/layout/Screen';
@@ -95,6 +95,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               secureTextEntry
               error={errors.password}
             />
+
+            {/* Forgot Password Link */}
+            <TouchableOpacity 
+              style={styles.forgotPasswordContainer}
+              onPress={() => navigation.navigate('ForgotPassword')}
+            >
+              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+            </TouchableOpacity>
 
             <Button
               title={loading ? 'Signing In...' : 'Sign In'}
@@ -208,6 +216,16 @@ const styles = StyleSheet.create({
   },
   form: {
     marginBottom: 30,
+  },
+  forgotPasswordContainer: {
+    alignItems: 'flex-end',
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  forgotPasswordText: {
+    color: colors.primary,
+    fontSize: 14,
+    fontWeight: '600',
   },
   loginButton: {
     marginTop: 10,

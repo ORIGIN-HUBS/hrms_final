@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Screen } from '../../components/layout/Screen';
 import { Button } from '../../components/common/Button';
+import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { colors } from '../../constants/colors';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAlert } from '../../contexts/AlertContext';
@@ -21,6 +22,8 @@ export const ProjectListScreen: React.FC<ProjectListScreenProps> = ({ onNavigate
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
+  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<number | null>(null);
 
   useEffect(() => {
     loadProjects();
@@ -61,8 +64,57 @@ export const ProjectListScreen: React.FC<ProjectListScreenProps> = ({ onNavigate
     loadProjects(true);
   };
 
-  const handleDelete = async (id: number) => {
-    showAlert('Confirm Delete', 'Are you sure you want to delete this project?', 'warning');
+  const handleDelete = (id: number) => {
+    console.log('Delete button clicked for project:', id);
+    console.log('User roles:', user?.roles);
+    setProjectToDelete(id);
+    setDeleteDialogVisible(true);
+  };
+
+  const confirmDelete = async () => {
+    if (projectToDelete === null) return;
+
+    try {
+      await projectService.delete(projectToDelete);
+      setDeleteDialogVisible(false);
+      setProjectToDelete(null);
+      
+      if (Platform.OS === 'web') {
+        alert('✓ Project deleted successfully');
+      } else {
+        Alert.alert('Success', 'Project deleted successfully');
+      }
+      
+      loadProjects();
+    } catch (error: any) {
+      setDeleteDialogVisible(false);
+      setProjectToDelete(null);
+      
+      if (error?.response?.status === 403) {
+        if (Platform.OS === 'web') {
+          alert('✗ Access Denied: You do not have permission to delete this project');
+        } else {
+          Alert.alert('Access Denied', 'You do not have permission to delete this project');
+        }
+      } else if (error?.response?.status === 404) {
+        if (Platform.OS === 'web') {
+          alert('✗ Project not found');
+        } else {
+          Alert.alert('Error', 'Project not found');
+        }
+      } else {
+        if (Platform.OS === 'web') {
+          alert('✗ Failed to delete project. Please try again.');
+        } else {
+          Alert.alert('Error', 'Failed to delete project. Please try again.');
+        }
+      }
+    }
+  };
+
+  const cancelDelete = () => {
+    setDeleteDialogVisible(false);
+    setProjectToDelete(null);
   };
 
   const getStatusBadge = (status: string) => {
@@ -137,12 +189,6 @@ export const ProjectListScreen: React.FC<ProjectListScreenProps> = ({ onNavigate
                 <MaterialIcons name="work" size={20} color="white" />
                 <Text style={styles.cardTitle}>Project List</Text>
               </View>
-              {(user?.roles?.includes('ROLE_ADMIN') || user?.roles?.includes('ROLE_HR')) && (
-                <TouchableOpacity style={styles.addButton} onPress={() => onNavigate('AddProject')}>
-                  <MaterialIcons name="add-circle" size={16} color="white" />
-                  <Text style={styles.addButtonText}>Add New Project</Text>
-                </TouchableOpacity>
-              )}
             </View>
 
             <View style={styles.cardBody}>
@@ -285,6 +331,15 @@ export const ProjectListScreen: React.FC<ProjectListScreenProps> = ({ onNavigate
           </View>
         </View>
       </ScrollView>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        visible={deleteDialogVisible}
+        title="Delete Project"
+        message="Are you sure you want to delete this project? This action cannot be undone."
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+      />
     </Screen>
   );
 };

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { dashboardService } from '../../api/dashboardService';
 import { useAuth } from '../../contexts/AuthContext';
+import { UserMenu } from '../../components/common/UserMenu';
 import { colors } from '../../constants/colors';
 import { DashboardAnalytics } from '../../types';
 
@@ -65,10 +66,22 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ name, subtitle, time, initi
   </View>
 );
 
-export const DashboardScreen: React.FC = () => {
+interface DashboardScreenProps {
+  onNavigate?: (screen: string) => void;
+}
+
+export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigate }) => {
   const [analytics, setAnalytics] = useState<DashboardAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+
+  // Check user roles
+  const isAdmin = user?.roles?.includes('ROLE_ADMIN') || false;
+  const isHR = user?.roles?.includes('ROLE_HR') || false;
+  const isEmployee = user?.roles?.includes('ROLE_EMPLOYEE') && !isAdmin && !isHR;
+
+  console.log('Dashboard - User roles:', user?.roles);
+  console.log('Dashboard - isAdmin:', isAdmin, 'isHR:', isHR, 'isEmployee:', isEmployee);
 
   useEffect(() => {
     loadAnalytics();
@@ -102,17 +115,7 @@ export const DashboardScreen: React.FC = () => {
           <Text style={styles.headerTitle}>Dashboard</Text>
         </View>
         <View style={styles.headerActions}>
-          <View style={styles.userInfo}>
-            <View style={styles.userAvatar}>
-              <Text style={styles.userInitials}>
-                {user?.username?.charAt(0).toUpperCase() || 'U'}
-              </Text>
-            </View>
-            <View>
-              <Text style={styles.userName}>{user?.username || 'User'}</Text>
-              <Text style={styles.userRole}>Administrator</Text>
-            </View>
-          </View>
+          <UserMenu onNavigate={onNavigate} />
         </View>
       </View>
 
@@ -288,6 +291,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f7fa',
+    overflow: 'visible',
   },
   loadingContainer: {
     flex: 1,
@@ -306,6 +310,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 20,
     elevation: 5,
+    overflow: 'visible',
+    zIndex: 100,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -323,6 +329,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 20,
+    overflow: 'visible',
+    zIndex: 101,
   },
   userInfo: {
     flexDirection: 'row',

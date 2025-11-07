@@ -142,4 +142,12 @@ public class UserService {
         user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
     }
+    
+    @Transactional
+    public void updateUserWithTemporaryPassword(User user, String newPassword) {
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setIsTemporaryPassword(true); // Mark as temporary
+        user.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(user);
+    }
 }

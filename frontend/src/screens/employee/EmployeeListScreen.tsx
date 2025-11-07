@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, TextInput, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, TextInput, ScrollView, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Screen } from '../../components/layout/Screen';
 import { Button } from '../../components/common/Button';
+import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { employeeService } from '../../api/employeeService';
 import { colors } from '../../constants/colors';
 import { Employee } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
+import { useAlert } from '../../contexts/AlertContext';
 
 interface EmployeeListScreenProps {
   onNavigate: (screen: string, params?: any) => void;
@@ -20,7 +22,17 @@ export const EmployeeListScreen: React.FC<EmployeeListScreenProps> = ({ onNaviga
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
+  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+  const [employeeToDelete, setEmployeeToDelete] = useState<number | null>(null);
+  const [bulkDeleteDialogVisible, setBulkDeleteDialogVisible] = useState(false);
   const { user } = useAuth();
+  const { showAlert } = useAlert();
+
+  // Debug user roles
+  useEffect(() => {
+    console.log('Current user:', user);
+    console.log('User roles:', user?.roles);
+  }, [user]);
 
   useEffect(() => {
     loadEmployees();
@@ -36,31 +48,23 @@ export const EmployeeListScreen: React.FC<EmployeeListScreenProps> = ({ onNaviga
 
   const handleBulkDelete = () => {
     if (selectedEmployees.length === 0) {
-      Alert.alert('No Selection', 'Please select employees to delete');
+      showAlert('Please select employees to delete', 'warning');
       return;
     }
 
-    Alert.alert(
-      'Confirm Bulk Delete',
-      `Are you sure you want to delete ${selectedEmployees.length} employee(s)?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await Promise.all(selectedEmployees.map(id => employeeService.delete(id)));
-              setSelectedEmployees([]);
-              loadEmployees();
-              Alert.alert('Success', 'Employees deleted successfully');
-            } catch (error) {
-              Alert.alert('Error', 'Failed to delete some employees');
-            }
-          },
-        },
-      ]
-    );
+    setBulkDeleteDialogVisible(true);
+  };
+
+  const confirmBulkDelete = async () => {
+    try {
+      await Promise.all(selectedEmployees.map(id => employeeService.delete(id)));
+      setSelectedEmployees([]);
+      setBulkDeleteDialogVisible(false);
+      loadEmployees();
+      showAlert(`Successfully deleted ${selectedEmployees.length} employee(s)`, 'success');
+    } catch (error) {
+      showAlert('Failed to delete some employees', 'error');
+    }
   };
 
   const toggleEmployeeSelection = (id: number) => {
@@ -114,27 +118,56 @@ export const EmployeeListScreen: React.FC<EmployeeListScreenProps> = ({ onNaviga
     setFilteredEmployees(filtered);
   };
 
-  const handleDelete = async (id: number) => {
-    Alert.alert(
-      'Confirm Delete',
-      'Are you sure you want to delete this employee?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await employeeService.delete(id);
-              loadEmployees();
-              Alert.alert('Success', 'Employee deleted successfully');
-            } catch (error) {
-              Alert.alert('Error', 'Failed to delete employee');
-            }
-          },
-        },
-      ]
-    );
+  const handleDelete = (id: number) => {
+    console.log('Delete button clicked for employee ID:', id);
+    setEmployeeToDelete(id);
+    setDeleteDialogVisible(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!employeeToDelete) return;
+
+    setDeleteDialogVisible(false);
+
+    try {
+      console.log('Attempting to delete employee with ID:', employeeToDelete);
+      await employeeService.delete(employeeToDelete);
+      console.log('Delete successful, reloading employees...');
+      loadEmployees();
+      
+      if (Platform.OS === 'web') {
+        alert('✓ Employee deleted successfully');
+      } else {
+        Alert.alert('Success', 'Employee deleted successfully');
+      }
+    } catch (error: any) {
+      console.error('Delete error:', error);
+      console.error('Error response:', error.response);
+      let errorMessage = 'Failed to delete employee';
+      
+      if (error.response) {
+        if (error.response.status === 403) {
+          errorMessage = 'You do not have permission to delete employees';
+        } else if (error.response.status === 404) {
+          errorMessage = 'Employee not found';
+        } else if (error.response.data?.message) {
+          errorMessage = error.response.data.message;
+        }
+      }
+      
+      if (Platform.OS === 'web') {
+        alert('✗ ' + errorMessage);
+      } else {
+        Alert.alert('Error', errorMessage);
+      }
+    } finally {
+      setEmployeeToDelete(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    setDeleteDialogVisible(false);
+    setEmployeeToDelete(null);
   };
 
   const getStatusBadge = (status: string) => {
@@ -192,7 +225,7 @@ export const EmployeeListScreen: React.FC<EmployeeListScreenProps> = ({ onNaviga
           <MaterialIcons name="visibility" size={18} color="white" />
         </TouchableOpacity>
 
-        {(user?.roles?.includes('ADMIN') || user?.roles?.includes('HR')) && (
+        {(user?.roles?.includes('ROLE_ADMIN') || user?.roles?.includes('ROLE_HR')) && (
           <>
             <TouchableOpacity
               style={[styles.actionButton, styles.editButton]}
@@ -210,10 +243,13 @@ export const EmployeeListScreen: React.FC<EmployeeListScreenProps> = ({ onNaviga
           </>
         )}
 
-        {user?.roles?.includes('ADMIN') && (
+        {user?.roles?.includes('ROLE_ADMIN') && (
           <TouchableOpacity
             style={[styles.actionButton, styles.deleteButton]}
-            onPress={() => handleDelete(item.id)}
+            onPress={() => {
+              console.log('Delete button clicked for employee ID:', item.id);
+              handleDelete(item.id);
+            }}
           >
             <MaterialIcons name="delete" size={18} color="white" />
           </TouchableOpacity>
@@ -261,12 +297,6 @@ export const EmployeeListScreen: React.FC<EmployeeListScreenProps> = ({ onNaviga
                 <MaterialIcons name="people" size={20} color="white" />
                 <Text style={styles.cardTitle}>Employee List</Text>
               </View>
-              {(user?.roles?.includes('ROLE_ADMIN') || user?.roles?.includes('ROLE_HR')) && (
-                <TouchableOpacity style={styles.addButton} onPress={() => onNavigate('AddEmployee')}>
-                  <MaterialIcons name="person-add" size={16} color="white" />
-                  <Text style={styles.addButtonText}>Add New Employee</Text>
-                </TouchableOpacity>
-              )}
             </View>
 
             <View style={styles.cardBody}>
@@ -463,6 +493,34 @@ export const EmployeeListScreen: React.FC<EmployeeListScreenProps> = ({ onNaviga
           </View>
         </View>
       </ScrollView>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        visible={deleteDialogVisible}
+        title="Delete Employee"
+        message="Are you sure you want to delete this employee? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmColor={colors.danger}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+        icon="delete-forever"
+        iconColor={colors.danger}
+      />
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <ConfirmDialog
+        visible={bulkDeleteDialogVisible}
+        title="Delete Selected Employees"
+        message={`Are you sure you want to delete ${selectedEmployees.length} employee(s)? This action cannot be undone.`}
+        confirmText="Delete All"
+        cancelText="Cancel"
+        confirmColor={colors.danger}
+        onConfirm={confirmBulkDelete}
+        onCancel={() => setBulkDeleteDialogVisible(false)}
+        icon="delete-forever"
+        iconColor={colors.danger}
+      />
     </Screen>
   );
 };

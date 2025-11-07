@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, ScrollView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { colors } from '../../constants/colors';
@@ -14,9 +14,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeRoute, onNavigate }) => 
 
   if (Platform.OS !== 'web') return null;
 
-  const isAdmin = user?.roles?.includes('ROLE_ADMIN');
-  const isHR = user?.roles?.includes('ROLE_HR');
-  const isEmployee = user?.roles?.includes('ROLE_EMPLOYEE');
+  const isAdmin = user?.roles?.includes('ROLE_ADMIN') || false;
+  const isHR = user?.roles?.includes('ROLE_HR') || false;
+  const isEmployee = user?.roles?.includes('ROLE_EMPLOYEE') || false;
+  
+  console.log('Sidebar user:', user);
+  console.log('Sidebar roles:', user?.roles);
+  console.log('isAdmin:', isAdmin, 'isHR:', isHR, 'isEmployee:', isEmployee);
 
   return (
     <View style={styles.sidebar}>
@@ -27,7 +31,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeRoute, onNavigate }) => 
         </TouchableOpacity>
       </View>
 
-      <View style={styles.nav}>
+      <ScrollView style={styles.nav} showsVerticalScrollIndicator={false}>
         {/* Main Section */}
         <View style={styles.navSection}>
           <Text style={styles.sectionTitle}>Main</Text>
@@ -75,10 +79,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeRoute, onNavigate }) => 
           </View>
         )}
 
-        {/* Time & Finance */}
-        <View style={styles.navSection}>
-          <Text style={styles.sectionTitle}>Time & Finance</Text>
-          {(isAdmin || isHR) && (
+        {/* Time & Finance - Only show section for Admin/HR */}
+        {(isAdmin || isHR) && (
+          <View style={styles.navSection}>
+            <Text style={styles.sectionTitle}>Time & Finance</Text>
             <TouchableOpacity
               style={[styles.navItem, activeRoute === 'Timesheets' && styles.navItemActive]}
               onPress={() => onNavigate('Timesheets')}
@@ -86,14 +90,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeRoute, onNavigate }) => 
               <MaterialIcons name="schedule" size={20} color={activeRoute === 'Timesheets' ? 'white' : 'rgba(255,255,255,0.8)'} />
               <Text style={[styles.navText, activeRoute === 'Timesheets' && styles.navTextActive]}>Timesheets</Text>
             </TouchableOpacity>
-          )}
-          {isEmployee && (
-            <TouchableOpacity style={styles.navItem}>
-              <MaterialIcons name="schedule" size={20} color="rgba(255,255,255,0.8)" />
-              <Text style={styles.navText}>My Timesheets</Text>
-            </TouchableOpacity>
-          )}
-          {(isAdmin || isHR) && (
             <TouchableOpacity
               style={[styles.navItem, activeRoute === 'Invoices' && styles.navItemActive]}
               onPress={() => onNavigate('Invoices')}
@@ -101,13 +97,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeRoute, onNavigate }) => 
               <MaterialIcons name="receipt" size={20} color={activeRoute === 'Invoices' ? 'white' : 'rgba(255,255,255,0.8)'} />
               <Text style={[styles.navText, activeRoute === 'Invoices' && styles.navTextActive]}>Invoices</Text>
             </TouchableOpacity>
-          )}
-        </View>
+          </View>
+        )}
 
-        {/* Documents */}
-        <View style={styles.navSection}>
-          <Text style={styles.sectionTitle}>Documents</Text>
-          {(isAdmin || isHR) && (
+        {/* Documents - Only show section for Admin/HR */}
+        {(isAdmin || isHR) && (
+          <View style={styles.navSection}>
+            <Text style={styles.sectionTitle}>Documents</Text>
             <TouchableOpacity
               style={[styles.navItem, activeRoute === 'Documents' && styles.navItemActive]}
               onPress={() => onNavigate('Documents')}
@@ -115,25 +111,53 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeRoute, onNavigate }) => 
               <MaterialIcons name="description" size={20} color={activeRoute === 'Documents' ? 'white' : 'rgba(255,255,255,0.8)'} />
               <Text style={[styles.navText, activeRoute === 'Documents' && styles.navTextActive]}>All Documents</Text>
             </TouchableOpacity>
-          )}
-          {isEmployee && (
-            <TouchableOpacity style={styles.navItem}>
-              <MaterialIcons name="cloud-upload" size={20} color="rgba(255,255,255,0.8)" />
-              <Text style={styles.navText}>Upload Documents</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+          </View>
+        )}
 
         {/* Employee Section */}
-        {isEmployee && (
+        {isEmployee && !isAdmin && !isHR && (
           <View style={styles.navSection}>
-            <Text style={styles.sectionTitle}>My Profile</Text>
+            <Text style={styles.sectionTitle}>My Account</Text>
             <TouchableOpacity
               style={[styles.navItem, activeRoute === 'Profile' && styles.navItemActive]}
               onPress={() => onNavigate('Profile')}
             >
               <MaterialIcons name="person" size={20} color={activeRoute === 'Profile' ? 'white' : 'rgba(255,255,255,0.8)'} />
-              <Text style={[styles.navText, activeRoute === 'Profile' && styles.navTextActive]}>Profile</Text>
+              <Text style={[styles.navText, activeRoute === 'Profile' && styles.navTextActive]}>My Profile</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.navItem}
+              onPress={() => {
+                logout();
+                onNavigate('Login');
+              }}
+            >
+              <MaterialIcons name="logout" size={20} color="rgba(255,255,255,0.8)" />
+              <Text style={styles.navText}>Logout</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Account Section for Admin & HR */}
+        {(isAdmin || isHR) && (
+          <View style={styles.navSection}>
+            <Text style={styles.sectionTitle}>Account</Text>
+            <TouchableOpacity
+              style={[styles.navItem, activeRoute === 'Profile' && styles.navItemActive]}
+              onPress={() => onNavigate('Profile')}
+            >
+              <MaterialIcons name="person" size={20} color={activeRoute === 'Profile' ? 'white' : 'rgba(255,255,255,0.8)'} />
+              <Text style={[styles.navText, activeRoute === 'Profile' && styles.navTextActive]}>My Profile</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.navItem}
+              onPress={() => {
+                logout();
+                onNavigate('Login');
+              }}
+            >
+              <MaterialIcons name="logout" size={20} color="rgba(255,255,255,0.8)" />
+              <Text style={styles.navText}>Logout</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -151,7 +175,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeRoute, onNavigate }) => 
             </TouchableOpacity>
           </View>
         )}
-      </View>
+      </ScrollView>
     </View>
   );
 };
@@ -188,6 +212,7 @@ const styles = StyleSheet.create({
   },
   nav: {
     paddingTop: 20,
+    paddingBottom: 20,
   },
   navSection: {
     marginBottom: 30,

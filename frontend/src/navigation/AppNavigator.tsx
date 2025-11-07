@@ -4,16 +4,26 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LoginScreen } from '../screens/auth/LoginScreen';
+import { ForgotPasswordScreen } from '../screens/auth/ForgotPasswordScreen';
 import { DashboardScreen } from '../screens/dashboard/DashboardScreen';
 import { EmployeeListScreen } from '../screens/employee/EmployeeListScreen';
 import { AddEmployeeScreen } from '../screens/employee/AddEmployeeScreen';
+import { ViewEmployeeScreen } from '../screens/employee/ViewEmployeeScreen';
+import { EditEmployeeScreen } from '../screens/employee/EditEmployeeScreen';
+import { EmployeeDocumentsScreen } from '../screens/employee/EmployeeDocumentsScreen';
 import { ProjectListScreen } from '../screens/project/ProjectListScreen';
+import { ViewProjectScreen } from '../screens/project/ViewProjectScreen';
+import { EditProjectScreen } from '../screens/project/EditProjectScreen';
+import { AddProjectScreen } from '../screens/project/AddProjectScreen';
 import { ApprovalsScreen } from '../screens/timesheet/ApprovalsScreen';
 import { TimesheetListScreen } from '../screens/timesheet/TimesheetListScreen';
 import { OffboardingListScreen } from '../screens/offboarding/OffboardingListScreen';
 import { InvoiceListScreen } from '../screens/invoice/InvoiceListScreen';
 import { DocumentsScreen } from '../screens/documents/DocumentsScreen';
 import { UserManagementScreen } from '../screens/user/UserManagementScreen';
+import { ViewProfileScreen } from '../screens/user/ViewProfileScreen';
+import { ChangePasswordScreen } from '../screens/user/ChangePasswordScreen';
+import { ResetPasswordScreen } from '../screens/user/ResetPasswordScreen';
 import { Sidebar } from '../components/layout/Sidebar';
 import { colors } from '../constants/colors';
 import { useAuth } from '../contexts/AuthContext';
@@ -27,14 +37,27 @@ const MainTab = createBottomTabNavigator<MainTabParamList>();
 const AuthNavigator = () => (
   <AuthStack.Navigator screenOptions={{ headerShown: false }}>
     <AuthStack.Screen name="Login" component={LoginScreen} />
+    <AuthStack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
   </AuthStack.Navigator>
 );
 
 const MainNavigator = () => {
   const [activeRoute, setActiveRoute] = React.useState('Dashboard');
   const [screenParams, setScreenParams] = React.useState<any>(null);
+  const { user } = useAuth();
+  
+  // Check if user has temporary password and redirect to change password
+  React.useEffect(() => {
+    if (user?.isTemporaryPassword && activeRoute !== 'ChangePassword') {
+      setActiveRoute('ChangePassword');
+    }
+  }, [user, activeRoute]);
   
   const handleNavigate = (route: string, params?: any) => {
+    // Prevent navigation away from change password if using temporary password
+    if (user?.isTemporaryPassword && route !== 'ChangePassword') {
+      return;
+    }
     setActiveRoute(route);
     setScreenParams(params);
   };
@@ -42,14 +65,26 @@ const MainNavigator = () => {
   const renderScreen = () => {
     switch (activeRoute) {
       case 'Dashboard':
-        return <DashboardScreen />;
+        return <DashboardScreen onNavigate={handleNavigate} />;
       case 'Employees':
       case 'EmployeeList':
         return <EmployeeListScreen onNavigate={handleNavigate} />;
       case 'AddEmployee':
         return <AddEmployeeScreen onNavigate={handleNavigate} />;
+      case 'ViewEmployee':
+        return <ViewEmployeeScreen onNavigate={handleNavigate} employeeId={screenParams?.id} />;
+      case 'EditEmployee':
+        return <EditEmployeeScreen onNavigate={handleNavigate} employeeId={screenParams?.id} />;
+      case 'EmployeeDocuments':
+        return <EmployeeDocumentsScreen onNavigate={handleNavigate} employeeId={screenParams?.id} />;
       case 'Projects':
         return <ProjectListScreen onNavigate={handleNavigate} />;
+      case 'AddProject':
+        return <AddProjectScreen onNavigate={handleNavigate} />;
+      case 'ViewProject':
+        return <ViewProjectScreen onNavigate={handleNavigate} projectId={screenParams?.id} />;
+      case 'EditProject':
+        return <EditProjectScreen onNavigate={handleNavigate} projectId={screenParams?.id} />;
       case 'Approvals':
         return <ApprovalsScreen onNavigate={handleNavigate} />;
       case 'Timesheets':
@@ -63,6 +98,11 @@ const MainNavigator = () => {
       case 'UserManagement':
         return <UserManagementScreen onNavigate={handleNavigate} />;
       case 'Profile':
+        return <ViewProfileScreen onNavigate={handleNavigate} />;
+      case 'ChangePassword':
+        return <ChangePasswordScreen onNavigate={handleNavigate} />;
+      case 'ResetPassword':
+        return <ResetPasswordScreen onNavigate={handleNavigate} userId={screenParams?.userId} username={screenParams?.username} />;
       default:
         return <DashboardScreen />;
     }

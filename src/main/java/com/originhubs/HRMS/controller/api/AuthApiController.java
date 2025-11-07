@@ -20,13 +20,14 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:8081"}, allowCredentials = "true")
 public class AuthApiController {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthApiController.class);
@@ -131,16 +132,25 @@ public class AuthApiController {
         }
 
         try {
-            User user = userService.findByUsername(authentication.getName());
+            String username = authentication.getName();
+            logger.info("Getting current user for username: {}", username);
+            
+            User user = userService.findByUsername(username);
             if (user != null) {
+                logger.info("User found: {} with {} roles", user.getUsername(), user.getRoles().size());
+                user.getRoles().forEach(role -> logger.info("Role: {}", role.getName()));
+                
                 LoginResponse.UserInfo userInfo = new LoginResponse.UserInfo();
                 userInfo.setId(user.getId());
                 userInfo.setUsername(user.getUsername());
                 userInfo.setFullName(user.getFullName());
                 userInfo.setEmail(user.getEmail());
-                userInfo.setRoles(user.getRoles().stream()
-                    .map(role -> role.getName().toString())
-                    .collect(Collectors.toList()));
+                
+                List<String> roleNames = user.getRoles().stream()
+                    .map(role -> role.getName().name())
+                    .collect(Collectors.toList());
+                logger.info("Converted roles: {}", roleNames);
+                userInfo.setRoles(roleNames);
                 userInfo.setIsTemporaryPassword(user.getIsTemporaryPassword());
                 
                 // Find employee ID if user is an employee
@@ -153,11 +163,14 @@ public class AuthApiController {
                     // Employee not found, leave employeeId as null
                 }
                 
+                logger.info("Returning user info: {}", userInfo);
                 return ResponseEntity.ok(userInfo);
             } else {
+                logger.warn("User not found for username: {}", username);
                 return ResponseEntity.notFound().build();
             }
         } catch (Exception e) {
+            logger.error("Error getting current user", e);
             return ResponseEntity.badRequest().build();
         }
     }

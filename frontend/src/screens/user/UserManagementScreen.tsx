@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Screen } from '../../components/layout/Screen';
 import { Header } from '../../components/layout/Header';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
+import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { colors } from '../../constants/colors';
 import { apiClient } from '../../api/client';
 
@@ -30,6 +31,8 @@ interface UserManagementScreenProps {
 export const UserManagementScreen: React.FC<UserManagementScreenProps> = ({ onNavigate }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<{ id: number; username: string } | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -51,33 +54,55 @@ export const UserManagementScreen: React.FC<UserManagementScreenProps> = ({ onNa
     try {
       await apiClient.post(`/users/${userId}/toggle`, { enabled: !enabled });
       fetchUsers();
-      Alert.alert('Success', `User ${!enabled ? 'enabled' : 'disabled'} successfully`);
+      
+      if (Platform.OS === 'web') {
+        alert(`✓ User ${!enabled ? 'enabled' : 'disabled'} successfully`);
+      } else {
+        Alert.alert('Success', `User ${!enabled ? 'enabled' : 'disabled'} successfully`);
+      }
     } catch (error) {
-      Alert.alert('Error', 'Failed to update user status');
+      if (Platform.OS === 'web') {
+        alert('✗ Failed to update user status');
+      } else {
+        Alert.alert('Error', 'Failed to update user status');
+      }
     }
   };
 
   const handleDeleteUser = (userId: number, username: string) => {
-    Alert.alert(
-      'Delete User',
-      `Are you sure you want to delete user "${username}"?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await apiClient.delete(`/users/${userId}`);
-              fetchUsers();
-              Alert.alert('Success', 'User deleted successfully');
-            } catch (error) {
-              Alert.alert('Error', 'Failed to delete user');
-            }
-          }
-        }
-      ]
-    );
+    setUserToDelete({ id: userId, username });
+    setDeleteDialogVisible(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!userToDelete) return;
+
+    try {
+      await apiClient.delete(`/users/${userToDelete.id}`);
+      setDeleteDialogVisible(false);
+      setUserToDelete(null);
+      fetchUsers();
+      
+      if (Platform.OS === 'web') {
+        alert('✓ User deleted successfully');
+      } else {
+        Alert.alert('Success', 'User deleted successfully');
+      }
+    } catch (error) {
+      setDeleteDialogVisible(false);
+      setUserToDelete(null);
+      
+      if (Platform.OS === 'web') {
+        alert('✗ Failed to delete user');
+      } else {
+        Alert.alert('Error', 'Failed to delete user');
+      }
+    }
+  };
+
+  const cancelDelete = () => {
+    setDeleteDialogVisible(false);
+    setUserToDelete(null);
   };
 
   const renderUserRow = ({ item }: { item: User }) => (
@@ -108,11 +133,29 @@ export const UserManagementScreen: React.FC<UserManagementScreenProps> = ({ onNa
         <Text style={styles.cellText}>{new Date(item.createdAt).toLocaleDateString()}</Text>
       </View>
       <View style={styles.actionsCell}>
-        <TouchableOpacity style={styles.actionIcon} onPress={() => handleToggleUser(item.id, item.enabled)}>
-          <MaterialIcons name={item.enabled ? 'toggle-on' : 'toggle-off'} size={20} color={item.enabled ? colors.success : colors.textSecondary} />
+        <TouchableOpacity 
+          style={[styles.actionButton, styles.viewButton]} 
+          onPress={() => onNavigate?.('ViewUserProfile', { userId: item.id })}
+        >
+          <MaterialIcons name="visibility" size={16} color="white" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionIcon} onPress={() => handleDeleteUser(item.id, item.username)}>
-          <MaterialIcons name="delete" size={18} color={colors.danger} />
+        <TouchableOpacity 
+          style={[styles.actionButton, styles.resetButton]} 
+          onPress={() => onNavigate?.('ResetPassword', { userId: item.id, username: item.username })}
+        >
+          <MaterialIcons name="lock-reset" size={16} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.actionButton, styles.toggleButton]} 
+          onPress={() => handleToggleUser(item.id, item.enabled)}
+        >
+          <MaterialIcons name={item.enabled ? 'toggle-on' : 'toggle-off'} size={16} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.actionButton, styles.deleteButton]} 
+          onPress={() => handleDeleteUser(item.id, item.username)}
+        >
+          <MaterialIcons name="delete" size={16} color="white" />
         </TouchableOpacity>
       </View>
     </View>
@@ -156,6 +199,15 @@ export const UserManagementScreen: React.FC<UserManagementScreenProps> = ({ onNa
           }
         />
       </View>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        visible={deleteDialogVisible}
+        title="Delete User"
+        message={`Are you sure you want to delete user "${userToDelete?.username}"? This action cannot be undone.`}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+      />
     </Screen>
   );
 };
@@ -259,6 +311,26 @@ const styles = StyleSheet.create({
   },
   actionIcon: {
     padding: 4,
+  },
+  actionButton: {
+    padding: 6,
+    borderRadius: 6,
+    marginRight: 8,
+    minWidth: 32,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
+  viewButton: {
+    backgroundColor: '#0d6efd',
+  },
+  resetButton: {
+    backgroundColor: '#ffc107',
+  },
+  toggleButton: {
+    backgroundColor: colors.success,
+  },
+  deleteButton: {
+    backgroundColor: colors.danger,
   },
   emptyContainer: {
     alignItems: 'center',
