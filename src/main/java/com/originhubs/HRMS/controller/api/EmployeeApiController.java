@@ -17,12 +17,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.HashMap;
+import com.originhubs.HRMS.service.EmailService;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/employees")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:8081"}, allowCredentials = "true")
 public class EmployeeApiController {
 
     private static final Logger logger = LoggerFactory.getLogger(EmployeeApiController.class);
@@ -31,11 +33,17 @@ public class EmployeeApiController {
     private final UserService userService;
     private final RoleService roleService;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
-    public ResponseEntity<List<EmployeeResponse>> getAllEmployees() {
-        List<Employee> employees = employeeService.getAllEmployees();
+    public ResponseEntity<List<EmployeeResponse>> getAllEmployees(@RequestParam(required = false) String search) {
+        List<Employee> employees;
+        if (search != null && !search.trim().isEmpty()) {
+            employees = employeeService.searchEmployees(search);
+        } else {
+            employees = employeeService.getAllEmployees();
+        }
         List<EmployeeResponse> response = employees.stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
@@ -68,7 +76,44 @@ public class EmployeeApiController {
         try {
             System.out.println("Received employee data: " + request.toString());
             Employee savedEmployee = employeeService.createEmployee(request);
-            return ResponseEntity.ok(convertToResponse(savedEmployee));
+            
+            // Create user account and get actual credentials
+            String[] credentials = employeeService.createUserAccountAndGetCredentials(savedEmployee);
+            
+            if (credentials == null) {
+                // User account creation failed or already exists
+                return ResponseEntity.ok(Map.of(
+                    "employee", convertToResponse(savedEmployee),
+                    "message", "Employee created but user account already exists or failed to create"
+                ));
+            }
+            
+            String username = credentials[0];
+            String password = credentials[1];
+            
+            // Send credentials email to personal email
+            String employeeName = savedEmployee.getFirstName() + " " + savedEmployee.getLastName();
+            String emailToSend = savedEmployee.getPersonalEmail();
+            boolean emailSent = false;
+            
+            if (emailToSend != null && !emailToSend.trim().isEmpty()) {
+                emailSent = emailService.sendCredentialsEmail(emailToSend, employeeName, username, password);
+            } else {
+                logger.warn("No personal email provided for employee: {}", savedEmployee.getEmployeeId());
+            }
+            
+            // Return response with credentials
+            Map<String, Object> response = new HashMap<>();
+            response.put("employee", convertToResponse(savedEmployee));
+            response.put("credentials", Map.of(
+                "username", username,
+                "email", savedEmployee.getWorkEmail(),
+                "password", password,
+                "isTemporary", true,
+                "emailSent", emailSent
+            ));
+            
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             e.printStackTrace(); // Add logging
             System.err.println("Error creating employee: " + e.getMessage());

@@ -255,9 +255,6 @@ public class EmployeeService {
 
         Employee savedEmployee = employeeRepository.save(employee);
         
-        // Create user account for the employee with custom password
-        createUserAccountForEmployee(savedEmployee, request.getUsername(), request.getTempPassword());
-        
         return savedEmployee;
     }
 
@@ -380,16 +377,16 @@ public class EmployeeService {
                 return;
             }
 
+            // Use custom password if provided, otherwise generate default password
+            String password = (customPassword != null && !customPassword.isEmpty()) ? 
+                customPassword : employee.getEmployeeId().toLowerCase() + "123";
+
             // Create new user
             User user = new User();
             user.setUsername(username);
             user.setEmail(employee.getWorkEmail());
             user.setFullName(employee.getFirstName() + " " + employee.getLastName());
-            
-            // Use custom password if provided, otherwise generate default password
-            String password = (customPassword != null && !customPassword.isEmpty()) ? 
-                customPassword : employee.getEmployeeId().toLowerCase() + "123";
-            user.setPassword(password);
+            user.setPassword(password); // This will be hashed by UserService
             user.setEnabled(true);
             user.setIsTemporaryPassword(true); // Mark as temporary password
 
@@ -419,8 +416,64 @@ public class EmployeeService {
      */
     public String[] getUserCredentialsForEmployee(Employee employee) {
         String username = employee.getWorkEmail().substring(0, employee.getWorkEmail().indexOf("@"));
-        String defaultPassword = employee.getEmployeeId().toLowerCase() + "123";
-        return new String[]{username, defaultPassword};
+        String password = employee.getEmployeeId().toLowerCase() + "123";
+        return new String[]{username, password};
+    }
+    
+    /**
+     * Create user account and return the actual credentials used
+     */
+    public String[] createUserAccountAndGetCredentials(Employee employee) {
+        try {
+            // Check if user already exists with this email
+            if (userService.existsByEmail(employee.getWorkEmail())) {
+                log.info("User account already exists for email: {}", employee.getWorkEmail());
+                return null;
+            }
+
+            // Generate username from work email (before @)
+            String username = employee.getWorkEmail().substring(0, employee.getWorkEmail().indexOf("@"));
+            
+            // Check if username already exists
+            if (userService.existsByUsername(username)) {
+                log.info("Username {} already exists, skipping user creation for employee: {}", username, employee.getEmployeeId());
+                return null;
+            }
+
+            // Generate default password: employeeId + "123"
+            String password = employee.getEmployeeId().toLowerCase() + "123";
+
+            // Create new user
+            User user = new User();
+            user.setUsername(username);
+            user.setEmail(employee.getWorkEmail());
+            user.setFullName(employee.getFirstName() + " " + employee.getLastName());
+            user.setPassword(password); // This will be hashed by UserService
+            user.setEnabled(true);
+            user.setIsTemporaryPassword(true); // Mark as temporary password
+
+            // Get ROLE_EMPLOYEE role
+            Role employeeRole = roleRepository.findByName(Role.RoleName.ROLE_EMPLOYEE)
+                    .orElseThrow(() -> new RuntimeException("ROLE_EMPLOYEE not found"));
+
+            // Save user with EMPLOYEE role
+            userService.saveUser(user, Arrays.asList(employeeRole.getId()));
+            
+            log.info("=== USER ACCOUNT CREATED ===");
+            log.info("Employee ID: {}", employee.getEmployeeId());
+            log.info("Work Email: {}", employee.getWorkEmail());
+            log.info("Generated Username: {}", username);
+            log.info("Generated Password: {}", password);
+            log.info("Full Name: {}", employee.getFirstName() + " " + employee.getLastName());
+            log.info("========================");
+            
+            // Return the actual credentials used
+            return new String[]{username, password};
+                    
+        } catch (Exception e) {
+            log.error("Failed to create user account for employee: {}", employee.getEmployeeId(), e);
+            return null;
+        }
     }
 
     /**

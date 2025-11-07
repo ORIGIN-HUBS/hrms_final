@@ -528,7 +528,7 @@
                     <i class="bi bi-briefcase"></i>
                     <span>Projects</span>
                 </a>
-                <a href="/timesheet/approvals" class="nav-link">
+                <a href="/timesheets/approvals" class="nav-link">
                     <i class="bi bi-check-circle"></i>
                     <span>Approvals</span>
                 </a>
@@ -549,11 +549,11 @@
             <!-- Time & Finance -->
             <div class="nav-section" sec:authorize="hasAnyRole('ADMIN', 'HR', 'EMPLOYEE')">
                 <div class="nav-section-title">Time & Finance</div>
-                <a href="/timesheet/list" class="nav-link" sec:authorize="hasAnyRole('ADMIN', 'HR')">
+                <a href="/timesheets/list" class="nav-link" sec:authorize="hasAnyRole('ADMIN', 'HR')">
                     <i class="bi bi-clock-history"></i>
                     <span>Timesheets</span>
                 </a>
-                <a href="/timesheet/my-timesheets" class="nav-link" sec:authorize="hasRole('EMPLOYEE')">
+                <a href="/timesheets" class="nav-link" sec:authorize="hasRole('EMPLOYEE')">
                     <i class="bi bi-clock-history"></i>
                     <span>My Timesheets</span>
                 </a>
